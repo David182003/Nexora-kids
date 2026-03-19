@@ -1,0 +1,264 @@
+:root{
+  --v:#7C3AED;--vd:#5B21B6;--vs:#EDE9FE;
+  --amb:#F59E0B;--ambs:#FEF3C7;
+  --tl:#0D9488;--tls:#CCFBF1;
+  --ro:#E11D48;--ros:#FFE4E6;
+  --gr:#10B981;--grs:#D1FAE5;
+  --rd:#EF4444;--rds:#FEE2E2;
+  --bg:#F5F3FF;--sf:#fff;--sf2:#F9F7FF;
+  --bd:#EDE9FE;--tx:#1E1B4B;--tx2:#6B7280;
+  --r:20px;--rsm:14px;--th:60px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:var(--bg)}
+body{font-family:'Plus Jakarta Sans',sans-serif;color:var(--tx);-webkit-font-smoothing:antialiased;overscroll-behavior:none;user-select:none}
+button{font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;border:none}
+input{font-family:'Plus Jakarta Sans',sans-serif}
+
+/* ── SPLASH ── */
+#splash{position:fixed;inset:0;z-index:9999;background:linear-gradient(145deg,#4C1D95,#7C3AED 55%,#A78BFA);display:flex;align-items:center;justify-content:center;overflow:hidden;transition:opacity .5s,transform .5s}
+#splash.out{opacity:0;transform:scale(1.04);pointer-events:none}
+.sp-in{text-align:center;position:relative;z-index:2}
+.sp-car{font-size:80px;display:block;margin-bottom:12px;animation:carBounce .7s ease infinite alternate}
+.sp-title{font-family:'Fredoka One',cursive;font-size:40px;color:#fff;animation:fadeUp .5s .2s ease both}
+.sp-sub{font-size:13px;color:rgba(255,255,255,.7);letter-spacing:5px;text-transform:uppercase;animation:fadeUp .5s .35s ease both;margin-bottom:28px}
+.sp-track{width:140px;height:3px;background:rgba(255,255,255,.25);border-radius:2px;margin:0 auto;overflow:hidden;animation:fadeUp .5s .5s ease both}
+.sp-bar{height:100%;background:#fff;border-radius:2px;animation:loadBar 1.6s .6s ease forwards;width:0}
+.bubble{position:absolute;animation:floatUp 3s ease infinite;opacity:.35;pointer-events:none}
+
+/* ── LOGIN ── */
+#loginScreen{position:fixed;inset:0;z-index:900;background:linear-gradient(160deg,#4C1D95 0%,#7C3AED 50%,#6D28D9 100%);display:flex;align-items:center;justify-content:center;padding:20px;overflow:hidden}
+#loginScreen.hidden{display:none}
+.lb-bubbles{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.lbub{position:absolute;border-radius:50%;background:rgba(255,255,255,.06);animation:floatBub linear infinite}
+.login-card{background:var(--sf);border-radius:28px;padding:30px 26px 34px;width:100%;max-width:380px;position:relative;z-index:2;box-shadow:0 20px 60px rgba(0,0,0,.3);animation:slideUpCard .5s .3s cubic-bezier(.16,1,.3,1) both}
+.l-logo{text-align:center;margin-bottom:22px}
+.l-logo-car{font-size:50px;display:block;margin-bottom:7px;animation:carBounce .7s ease infinite alternate}
+.l-logo-name{font-family:'Fredoka One',cursive;font-size:28px;color:var(--v)}
+.l-logo-sub{font-size:11px;color:var(--tx2);letter-spacing:3px;text-transform:uppercase;margin-top:2px}
+.l-title{font-size:16px;font-weight:800;color:var(--tx);margin-bottom:18px;text-align:center}
+.l-err{background:var(--rds);color:var(--rd);border-radius:10px;padding:10px 14px;font-size:13px;font-weight:600;margin-bottom:14px;text-align:center;display:none;animation:shake .4s ease}
+.lf{margin-bottom:14px}
+.lf label{display:block;font-size:11px;font-weight:800;color:var(--tx2);letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px}
+.lf-wrap{position:relative}
+.lf-ico{position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:17px;pointer-events:none}
+.linput{width:100%;padding:13px 13px 13px 42px;border:2px solid var(--bd);border-radius:var(--rsm);font-size:15px;color:var(--tx);background:var(--sf2);outline:none;transition:border-color .2s}
+.linput:focus{border-color:var(--v);background:var(--sf)}
+.linput.err{border-color:var(--rd)}
+.l-btn{width:100%;padding:16px;background:linear-gradient(135deg,var(--v),#9333EA);color:#fff;border:none;border-radius:15px;font-size:15px;font-weight:700;transition:transform .15s;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:18px}
+.l-btn:active{transform:scale(.98)}
+.l-btn:disabled{opacity:.7;cursor:not-allowed}
+.l-hint{background:var(--sf2);border:1.5px solid var(--bd);border-radius:14px;padding:13px 15px}
+.l-hint-title{font-size:10px;font-weight:800;color:var(--tx2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:9px}
+.l-hint-row{display:flex;align-items:center;gap:9px;margin-bottom:7px}
+.l-hint-row:last-child{margin-bottom:0}
+.lbadge{padding:3px 9px;border-radius:20px;font-size:11px;font-weight:800;white-space:nowrap}
+.lbadge.a{background:linear-gradient(135deg,#FEF3C7,#FDE68A);color:#92400E}
+.lbadge.e{background:var(--vs);color:var(--v)}
+.lcred{font-size:12px;color:var(--tx2);font-family:monospace;background:var(--sf);padding:3px 8px;border-radius:6px;border:1px solid var(--bd)}
+
+/* ── APP ── */
+.app{position:fixed;inset:0;display:flex;flex-direction:column;max-width:480px;margin:0 auto;background:var(--bg)}
+
+/* ── TOPBAR ── */
+.topbar{height:var(--th);background:var(--sf);border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;padding:0 14px;flex-shrink:0;box-shadow:0 1px 8px rgba(124,58,237,.08)}
+.tb-brand{display:flex;align-items:center;gap:7px}
+.tb-logo{font-size:19px}
+.tb-name{font-family:'Fredoka One',cursive;font-size:20px;color:var(--v)}
+.tb-right{display:flex;align-items:center;gap:8px}
+.tb-user{display:flex;align-items:center;gap:6px;background:var(--sf2);border:1.5px solid var(--bd);border-radius:24px;padding:5px 11px 5px 5px;cursor:pointer;transition:background .15s}
+.tb-user:active{background:var(--bd)}
+.tb-av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800}
+.tb-av.admin{background:linear-gradient(135deg,#FEF3C7,#FDE68A);color:#92400E}
+.tb-av.employee{background:var(--vs);color:var(--v)}
+.tb-uname{font-size:12px;font-weight:700;max-width:80px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tb-rbadge{font-size:9px;font-weight:800;padding:2px 6px;border-radius:8px;text-transform:uppercase;letter-spacing:.4px}
+.tb-rbadge.admin{background:#FEF3C7;color:#92400E}
+.tb-rbadge.employee{background:var(--vs);color:var(--v)}
+.tb-addbtn{width:34px;height:34px;background:var(--v);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;transition:transform .15s}
+.tb-addbtn:active{transform:scale(.9)}
+
+/* ── TABS ── */
+.tabs{display:flex;padding:8px 12px 0;gap:5px;flex-shrink:0;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab-btn{flex-shrink:0;padding:8px 10px;border:2px solid var(--bd);background:var(--sf2);border-radius:12px;font-size:11px;font-weight:700;color:var(--tx2);transition:all .2s;white-space:nowrap}
+.tab-btn.active{border-color:var(--v);background:var(--vs);color:var(--v)}
+
+/* ── MAIN ── */
+.main{flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:20px;-webkit-overflow-scrolling:touch}
+.view{display:none;animation:fadeIn .2s ease}.view.active{display:block}
+
+/* ── ROLE BANNER ── */
+.role-banner{margin:10px 14px 0;padding:10px 13px;border-radius:12px;display:flex;align-items:center;gap:9px;font-size:12px;font-weight:700}
+.role-banner.admin{background:linear-gradient(135deg,#FEF3C7,#FDE68A);color:#92400E;border:1.5px solid #FCD34D}
+.role-banner.employee{background:var(--vs);color:var(--v);border:1.5px solid #C4B5FD}
+
+/* ── DASHBOARD ── */
+.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px}
+.dc{border-radius:var(--r);padding:14px;border:1.5px solid transparent;animation:popIn .4s ease both}
+.dc:nth-child(2){animation-delay:.05s}.dc:nth-child(3){animation-delay:.1s}.dc:nth-child(4){animation-delay:.15s}
+.dc--v{background:var(--vs);border-color:#C4B5FD}.dc--a{background:var(--ambs);border-color:#FDE68A}
+.dc--t{background:var(--tls);border-color:#99F6E4}.dc--r{background:var(--ros);border-color:#FECDD3}
+.dc-icon{font-size:20px;margin-bottom:5px}
+.dc-val{font-family:'Fredoka One',cursive;font-size:26px;line-height:1;color:var(--tx)}
+.dc-lbl{font-size:10px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.4px;margin-top:3px}
+
+/* ── SECTIONS ── */
+.sec{padding:12px 14px 4px}
+.sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:11px}
+.sec-title{font-size:14px;font-weight:800}
+.sec-badge{background:var(--v);color:#fff;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px}
+
+/* ── VEHICLE CARDS ── */
+.vg{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.vc{background:var(--sf);border-radius:var(--r);border:2px solid var(--bd);overflow:hidden;cursor:pointer;transition:transform .2s;animation:popIn .35s ease both}
+.vc:active{transform:scale(.96)}
+.vc.available{border-color:#A7F3D0}.vc.in-use{border-color:#FDE68A}
+.vc.time-over{border-color:var(--rd);animation:pulseRed 1.2s infinite}
+.vc-top{position:relative;padding:16px 12px 8px;text-align:center}
+.vc.available .vc-top{background:linear-gradient(135deg,#ECFDF5,#D1FAE5)}
+.vc.in-use .vc-top{background:linear-gradient(135deg,#FFFBEB,#FEF3C7)}
+.vc.time-over .vc-top{background:linear-gradient(135deg,#FFF1F2,#FFE4E6)}
+.vc-dot{position:absolute;top:9px;right:9px;width:10px;height:10px;border-radius:50%;background:var(--gr)}
+.vc.in-use .vc-dot{background:var(--amb);animation:blink .8s infinite}
+.vc.time-over .vc-dot{background:var(--rd)}
+.vc-emoji{font-size:48px;display:block;line-height:1.1}
+.vc-body{padding:7px 11px 4px}
+.vc-name{font-size:12px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vc-type{font-size:10px;color:var(--tx2);font-weight:600;margin-top:1px}
+.vc-price{font-size:10px;color:var(--v);font-weight:700;margin-top:2px}
+.vc-timer{font-family:'Fredoka One',cursive;font-size:22px;text-align:center;padding:3px 11px 5px;color:var(--amb)}
+.vc-timer.urgent{color:var(--rd);animation:blink .5s infinite alternate}
+.vc-acts{display:flex;gap:5px;padding:0 9px 10px}
+.vbtn{flex:1;padding:8px 3px;border-radius:9px;font-size:11px;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;transition:transform .15s;border:none}
+.vbtn:active{transform:scale(.94)}
+.vbtn-p{background:var(--v);color:#fff}.vbtn-t{background:var(--tl);color:#fff}
+.vbtn-a{background:var(--amb);color:#fff}.vbtn-r{background:var(--rd);color:#fff}
+.vbtn-e{background:var(--sf2);color:var(--tx2);border:1.5px solid var(--bd)!important}
+
+/* ── HISTORY ── */
+.filter-row{display:flex;gap:7px;padding:4px 14px 9px}
+.fb{padding:7px 13px;border:2px solid var(--bd);background:var(--sf2);border-radius:20px;font-size:12px;font-weight:700;color:var(--tx2);transition:all .15s}
+.fb.active{border-color:var(--v);background:var(--v);color:#fff}
+.sale-list{padding:0 14px}
+.si{background:var(--sf);border:1.5px solid var(--bd);border-radius:var(--rsm);padding:10px 13px;margin-bottom:8px;display:flex;align-items:center;gap:10px}
+.si-emoji{font-size:27px;flex-shrink:0}.si-info{flex:1;min-width:0}
+.si-name{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.si-det{font-size:11px;color:var(--tx2);margin-top:2px}.si-right{text-align:right;flex-shrink:0}
+.si-price{font-family:'Fredoka One',cursive;font-size:19px;color:var(--v)}
+.si-pay{font-size:10px;color:var(--tx2);margin-top:1px}
+
+/* ── STATS ── */
+.stat-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px}
+.scard{background:var(--sf);border:1.5px solid var(--bd);border-radius:var(--r);padding:16px 13px;text-align:center}
+.scard-icon{font-size:26px;margin-bottom:7px}.scard-val{font-family:'Fredoka One',cursive;font-size:27px;color:var(--v)}
+.scard-lbl{font-size:10px;color:var(--tx2);font-weight:700;margin-top:3px}
+.pay-sum{display:flex;flex-direction:column;gap:9px;padding:0 14px}
+.pay-row{background:var(--sf);border:1.5px solid var(--bd);border-radius:var(--rsm);padding:12px 15px;display:flex;align-items:center;gap:11px}
+.pay-ico{font-size:23px}.pay-lbl{flex:1;font-size:13px;font-weight:700}
+.pay-val{font-family:'Fredoka One',cursive;font-size:21px;color:var(--v)}
+.usage-wrap{padding:0 14px}
+.u-item{margin-bottom:11px}
+.u-label{display:flex;justify-content:space-between;font-size:12px;font-weight:700;margin-bottom:4px}
+.u-track{height:9px;background:var(--bd);border-radius:5px;overflow:hidden}
+.u-fill{height:100%;background:linear-gradient(90deg,var(--v),#9333EA);border-radius:5px;transition:width .6s ease}
+
+/* ── ADMIN VEHICLES ── */
+.admin-list{padding:0 14px}
+.av-item{background:var(--sf);border:1.5px solid var(--bd);border-radius:var(--rsm);padding:13px 14px;display:flex;align-items:center;gap:12px;margin-bottom:9px;cursor:pointer;transition:transform .15s}
+.av-item:active{transform:scale(.98)}
+.av-emoji{font-size:33px}.av-info{flex:1}
+.av-name{font-size:14px;font-weight:800}.av-type{font-size:11px;color:var(--tx2);font-weight:600;margin-top:2px}
+.av-stat{font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;display:inline-block;margin-top:3px}
+.av-stat.available{background:var(--grs);color:#047857}
+.av-stat.in-use{background:var(--ambs);color:#92400E}
+.av-stat.time-over{background:var(--rds);color:var(--rd)}
+.av-arrow{color:var(--tx2);font-size:18px}
+
+/* ── ADMIN PANEL ── */
+.admin-panel{padding:12px}
+.ap-sec{background:var(--sf);border:1.5px solid var(--bd);border-radius:var(--r);margin-bottom:12px;overflow:hidden}
+.ap-sec-head{padding:13px 15px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:9px}
+.ap-sec-ico{font-size:20px}.ap-sec-title{font-size:13px;font-weight:800;flex:1}
+.ap-sec-badge{background:var(--v);color:#fff;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px}
+.ap-row{padding:11px 15px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:11px;cursor:pointer;transition:background .15s}
+.ap-row:last-child{border-bottom:none}.ap-row:active{background:var(--sf2)}
+.ap-row-ico{font-size:26px;flex-shrink:0}.ap-row-info{flex:1;min-width:0}
+.ap-row-name{font-size:13px;font-weight:700}.ap-row-sub{font-size:11px;color:var(--tx2);margin-top:1px}
+.ap-row-val{font-family:'Fredoka One',cursive;font-size:17px;color:var(--v);text-align:right}
+.ap-action{padding:11px 15px}
+
+/* ── EMPTY ── */
+.empty{text-align:center;padding:30px 20px;color:var(--tx2);font-size:13px;line-height:1.8}
+.empty-ico{font-size:40px;display:block;margin-bottom:9px}
+
+/* ── MODALS ── */
+.overlay{position:fixed;inset:0;z-index:500;background:rgba(30,27,75,.55);display:flex;align-items:flex-end;animation:fadeIn .2s ease}
+.sheet{background:var(--sf);border-radius:28px 28px 0 0;width:100%;max-width:480px;margin:0 auto;max-height:92vh;overflow-y:auto;animation:slideUp .3s cubic-bezier(.16,1,.3,1)}
+.sheet--alert{padding:30px 22px 34px;text-align:center;background:linear-gradient(180deg,#FFF1F2,var(--sf) 40%)}
+.m-pill{width:36px;height:4px;background:var(--bd);border-radius:2px;margin:13px auto 0}
+.m-head{display:flex;align-items:center;justify-content:space-between;padding:13px 19px 6px}
+.m-title{font-family:'Fredoka One',cursive;font-size:20px;color:var(--tx)}
+.m-close{width:30px;height:30px;border-radius:50%;background:var(--sf2);color:var(--tx2);font-size:14px}
+.m-body{padding:8px 19px 26px}
+.alert-ico{font-size:64px;display:block;animation:ring .4s ease infinite alternate;margin-bottom:11px}
+.alert-title{font-family:'Fredoka One',cursive;font-size:25px;color:var(--rd);margin-bottom:8px}
+.alert-msg{font-size:14px;color:var(--tx2);line-height:1.6;margin-bottom:20px}
+
+/* ── LOGOUT MODAL ── */
+.logout-body{padding:26px 22px 30px;text-align:center}
+.logout-ico{font-size:54px;display:block;margin-bottom:11px}
+.logout-name{font-family:'Fredoka One',cursive;font-size:22px;margin-bottom:6px}
+.logout-role{font-size:13px;color:var(--tx2);margin-bottom:20px;line-height:1.5}
+
+/* ── FORM ── */
+.field{margin-bottom:15px}
+.flabel{display:block;font-size:11px;font-weight:800;color:var(--tx2);letter-spacing:.4px;margin-bottom:6px;text-transform:uppercase}
+.finput{width:100%;padding:12px 14px;border:2px solid var(--bd);border-radius:var(--rsm);font-size:15px;color:var(--tx);background:var(--sf2);outline:none;transition:border-color .2s}
+.finput:focus{border-color:var(--v)}
+.type-opts,.pay-opts{display:flex;gap:10px}
+.topt,.popt{flex:1;padding:12px 8px;border:2px solid var(--bd);background:var(--sf2);border-radius:var(--rsm);font-size:13px;font-weight:700;text-align:center;line-height:1.5;transition:all .15s}
+.topt.active,.popt.active{border-color:var(--v);background:var(--vs);color:var(--v)}
+.topt small{font-size:11px;font-weight:600;color:var(--tx2);display:block;margin-top:2px}
+.topt.active small{color:var(--v)}
+.emoji-grid{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:8px}
+.ebtn{width:43px;height:43px;border:2px solid var(--bd);background:var(--sf2);border-radius:10px;font-size:22px;transition:all .15s;display:flex;align-items:center;justify-content:center}
+.ebtn.active{border-color:var(--v);background:var(--vs)}
+.v-preview{background:linear-gradient(135deg,var(--vs),#DDD6FE);border-radius:var(--r);padding:20px;text-align:center;font-size:64px;margin-bottom:15px;line-height:1}
+.stepper{display:flex;align-items:center;justify-content:center;gap:20px;margin-bottom:10px}
+.step-btn{width:50px;height:50px;border-radius:50%;font-size:28px;font-weight:700;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.step-btn:active{transform:scale(.9)}
+.step-minus{background:var(--sf2);border:2px solid var(--bd);color:var(--v)}
+.step-plus{background:var(--v);color:#fff;border:none}
+.t-display{text-align:center;min-width:82px}
+.t-val{font-family:'Fredoka One',cursive;font-size:50px;color:var(--tx);display:block;line-height:1}
+.t-unit{font-size:12px;color:var(--tx2);font-weight:600}
+.qt-row{display:flex;gap:6px;flex-wrap:wrap}
+.qt{flex:1;min-width:54px;padding:8px 5px;border:2px solid var(--bd);background:var(--sf2);border-radius:9px;font-size:12px;font-weight:700;color:var(--tx);transition:all .15s}
+.qt.active,.qt:active{border-color:var(--v);background:var(--vs);color:var(--v)}
+.price-banner{background:linear-gradient(135deg,var(--v),#9333EA);border-radius:var(--rsm);padding:15px 19px;display:flex;align-items:center;justify-content:space-between;margin-bottom:15px}
+.pb-label{font-size:13px;font-weight:700;color:rgba(255,255,255,.85)}
+.pb-amount{font-family:'Fredoka One',cursive;font-size:38px;color:#fff}
+.cta{width:100%;padding:15px;background:linear-gradient(135deg,var(--v),#9333EA);color:#fff;border:none;border-radius:15px;font-size:15px;font-weight:700;transition:transform .15s,opacity .15s;margin-bottom:9px}
+.cta:active{transform:scale(.98);opacity:.9}
+.sec-btn{width:100%;padding:13px;background:var(--vs);color:var(--v);border:2px solid var(--v);border-radius:15px;font-size:14px;font-weight:700;margin-bottom:8px}
+.danger{width:100%;padding:13px;background:var(--rds);color:var(--rd);border:2px solid var(--rd);border-radius:15px;font-size:14px;font-weight:700}
+.link-btn{font-size:12px;font-weight:700;color:var(--v);background:none;border:none;padding:4px 7px;cursor:pointer}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(12px);background:var(--tx);color:#fff;padding:10px 20px;border-radius:24px;font-size:13px;font-weight:600;z-index:9000;opacity:0;pointer-events:none;transition:all .3s ease;white-space:nowrap;max-width:90vw;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ── KEYFRAMES ── */
+@keyframes carBounce{from{transform:translateY(0) rotate(-3deg)}to{transform:translateY(-10px) rotate(3deg)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes loadBar{from{width:0}to{width:100%}}
+@keyframes floatUp{0%{transform:translateY(0) scale(1);opacity:.35}100%{transform:translateY(-110vh) scale(.6);opacity:0}}
+@keyframes floatBub{0%{transform:translateY(100vh)}100%{transform:translateY(-20vh)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+@keyframes slideUpCard{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:translateY(0)}}
+@keyframes ring{from{transform:rotate(-18deg)}to{transform:rotate(18deg)}}
+@keyframes popIn{0%{transform:scale(.7);opacity:0}70%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}
+@keyframes pulseRed{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.35)}50%{box-shadow:0 0 0 10px rgba(239,68,68,0)}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+@keyframes numPop{0%{transform:scale(.7)}70%{transform:scale(1.15)}100%{transform:scale(1)}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}

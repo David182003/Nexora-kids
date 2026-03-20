@@ -311,31 +311,6 @@
     </div>
   </div>
 
-  <!-- MODAL CANCELAR VIAJE -->
-  <div class="overlay" id="mCancelViaje" style="display:none">
-    <div class="sheet sheet--cancel">
-      <div class="m-pill"></div>
-      <div class="cancel-body">
-        <div class="cancel-ico-wrap">
-          <span class="cancel-veh-emoji" id="cancelVehEmoji">🚗</span>
-          <span class="cancel-badge">🚫</span>
-        </div>
-        <h2 class="cancel-title">¿Cancelar este viaje?</h2>
-        <p class="cancel-subtitle">El cliente se desanimó. El vehículo quedará libre y <strong>la venta no se contará</strong>.</p>
-        <div class="cancel-card">
-          <div class="cancel-card-header">
-            <span id="cancelVehName" class="cancel-veh-name">Vehículo</span>
-            <span class="cancel-chip">Se eliminará</span>
-          </div>
-          <div id="cancelVentaInfo" class="cancel-venta-info"></div>
-        </div>
-        <input type="hidden" id="cancelVentaId">
-        <button class="cta-cancel" onclick="confirmCancelViaje()">🚫 Sí, cancelar viaje</button>
-        <button class="sec-btn" style="margin-top:0" onclick="closeM('mCancelViaje')">Volver</button>
-      </div>
-    </div>
-  </div>
-
   <div class="toast" id="toast"></div>
 
   <!-- MODAL CELEBRACIÓN DE NUEVO PERMISO -->

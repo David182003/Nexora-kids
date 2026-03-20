@@ -31,12 +31,6 @@ const PERMISOS_DEF = [
     desc: 'Puede cambiar el método de pago (Yape/Efectivo) en ventas registradas'
   },
   {
-    key: 'cancelarViaje',
-    icon: '🚫',
-    label: 'Cancelar viaje',
-    desc: 'Si un cliente se desanimó, puede cancelar el viaje en curso y liberar el vehículo sin contar la venta'
-  },
-  {
     key: 'verStats',
     icon: '📈',
     label: 'Ver estadísticas',
@@ -69,7 +63,6 @@ let rentVehId = null, rentMin = 10, rentPay = 'yape';
 let editVehId = null, vType = 'small', vEmoji = '🚗';
 let editUserId = null, newURole = 'employee';
 let tuVehId = null;
-let cancelVehId = null; // vehículo a cancelar
 let unsubVehicles = null, unsubSales = null, unsubUsers = null, unsubCurrentUser = null;
 // Permisos del usuario en edición
 let editUserPerms = {};
@@ -420,29 +413,14 @@ function cardHTML(v) {
   const pL = v.type === 'large' ? 'S/10×10min' : 'S/5×10min';
   const tL = v.type === 'large' ? '🚙 Grande' : '🚗 Pequeño';
   let timer = '', acts = '';
-  const canCancel = hasPermiso('cancelarViaje');
   if (inUse) {
     const se = sessions[v.id];
     const rem = se ? Math.max(0, se.endTime - Date.now()) : 0;
     timer = `<div class="vc-timer" id="tmr-${v.id}">${fmtTime(rem)}</div>`;
-    const cancelBtn = canCancel
-      ? `<button class="vbtn vbtn-cancel" onclick="openCancelModal('${v.id}')" title="Cancelar viaje">🚫</button>`
-      : '';
-    acts = `<div class="vc-acts">
-      <button class="vbtn vbtn-a" onclick="extendVeh('${v.id}',10)">+10</button>
-      <button class="vbtn vbtn-r" onclick="freeVeh('${v.id}')">✔ Fin</button>
-      ${cancelBtn}
-    </div>`;
+    acts = `<div class="vc-acts"><button class="vbtn vbtn-a" onclick="extendVeh('${v.id}',10)">+10 min</button><button class="vbtn vbtn-r" onclick="freeVeh('${v.id}')">Liberar</button></div>`;
   } else if (over) {
     timer = `<div class="vc-timer urgent" id="tmr-${v.id}">⏰ FIN</div>`;
-    const cancelBtn = canCancel
-      ? `<button class="vbtn vbtn-cancel" onclick="openCancelModal('${v.id}')" title="Cancelar viaje">🚫</button>`
-      : '';
-    acts = `<div class="vc-acts">
-      <button class="vbtn vbtn-a" onclick="extendVeh('${v.id}',10)">+10</button>
-      <button class="vbtn vbtn-t" onclick="freeVeh('${v.id}')">✔ Fin</button>
-      ${cancelBtn}
-    </div>`;
+    acts = `<div class="vc-acts"><button class="vbtn vbtn-a" onclick="extendVeh('${v.id}',10)">+10 min</button><button class="vbtn vbtn-t" onclick="freeVeh('${v.id}')">Liberar</button></div>`;
   } else {
     const editBtn = isAdmin() ? `<button class="vbtn vbtn-e" onclick="openEditModal('${v.id}')">✏️</button>` : '';
     acts = `<div class="vc-acts"><button class="vbtn vbtn-p" onclick="openRentModal('${v.id}')">🚀 Alquilar</button>${editBtn}</div>`;
@@ -705,69 +683,6 @@ window.freeVeh = async function(id) {
 window.addTenFromAlert = function() { closeM('mTimeUp'); if (tuVehId) extendVeh(tuVehId, 10); };
 
 // ══════════════════════════════════════════
-//  CANCELAR VIAJE
-// ══════════════════════════════════════════
-window.openCancelModal = function(id) {
-  if (!hasPermiso('cancelarViaje')) {
-    toast('⛔ No tienes permiso para cancelar viajes');
-    return;
-  }
-  const v = vehicles.find(x => x.id === id);
-  if (!v) return;
-  cancelVehId = id;
-  // Mostrar info en el modal
-  document.getElementById('cancelVehEmoji').textContent = v.emoji;
-  document.getElementById('cancelVehName').textContent = v.name;
-  // Buscar la venta más reciente de este vehículo (la que se cancelaría)
-  const ventaReciente = allSales
-    .filter(s => s.vId === id)
-    .sort((a,b) => b.date - a.date)[0];
-  if (ventaReciente) {
-    const mins = ventaReciente.min;
-    const precio = ventaReciente.price;
-    const pay = ventaReciente.payment === 'yape' ? '💜 Yape' : '💵 Efectivo';
-    document.getElementById('cancelVentaInfo').innerHTML =
-      `<div class="cancel-venta-row"><span>⏱ Tiempo alquilado</span><strong>${mins} min</strong></div>
-       <div class="cancel-venta-row"><span>💰 Monto</span><strong>S/${precio}</strong></div>
-       <div class="cancel-venta-row"><span>💳 Pago registrado</span><strong>${pay}</strong></div>`;
-    document.getElementById('cancelVentaId').value = ventaReciente.id;
-  } else {
-    document.getElementById('cancelVentaInfo').innerHTML =
-      `<div class="cancel-venta-row" style="color:var(--tx2)">Sin venta registrada asociada</div>`;
-    document.getElementById('cancelVentaId').value = '';
-  }
-  openM('mCancelViaje');
-};
-
-window.confirmCancelViaje = async function() {
-  if (!hasPermiso('cancelarViaje') || !cancelVehId) return;
-  const v = vehicles.find(x => x.id === cancelVehId);
-  const ventaId = document.getElementById('cancelVentaId').value;
-  closeM('mCancelViaje');
-  // Parar timer
-  if (sessions[cancelVehId]?.timerId) {
-    clearInterval(sessions[cancelVehId].timerId);
-    delete sessions[cancelVehId];
-  }
-  try {
-    // Liberar vehículo
-    await updateDoc(doc(db, 'vehicles', cancelVehId), {
-      status: 'available',
-      timerEndAt: null
-    });
-    // Eliminar la venta de Firestore (no cuenta como ingreso)
-    if (ventaId) {
-      await deleteDoc(doc(db, 'sales', ventaId));
-    }
-    toast(`🚫 Viaje cancelado · ${v?.name || 'Vehículo'} disponible`);
-  } catch(e) {
-    console.error('Error cancelando viaje:', e);
-    toast('❌ Error al cancelar el viaje');
-  }
-  cancelVehId = null;
-};
-
-// ══════════════════════════════════════════
 //  VEHICLE CRUD (solo admin)
 // ══════════════════════════════════════════
 window.openAddModal = function() {
@@ -1007,7 +922,7 @@ window.openM = function(id) { document.getElementById(id).style.display = 'flex'
 window.closeM = function(id) { document.getElementById(id).style.display = 'none'; };
 
 document.addEventListener('click', e => {
-  ['mRent','mVeh','mTimeUp','mLogout','mUser','mEditPago','mCancelViaje'].forEach(id => {
+  ['mRent','mVeh','mTimeUp','mLogout','mUser','mEditPago'].forEach(id => {
     const el = document.getElementById(id); if (el && e.target === el) closeM(id);
   });
 });

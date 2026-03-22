@@ -38,7 +38,8 @@ const PERMISOS_DEF = [
   { key:'verStats',             icon:'📈', label:'Ver estadísticas',         desc:'Acceso a la pestaña de estadísticas del día' },
   { key:'exportarCSV',          icon:'📁', label:'Exportar CSV',             desc:'Puede descargar el historial de ventas en CSV' },
   { key:'verHistorialCompleto', icon:'📋', label:'Ver historial completo',   desc:'Puede ver todo el historial (semana/todo), no solo el de hoy' },
-  { key:'gestionarTrampolin',   icon:'🦘', label:'Gestionar trampolín',      desc:'Puede agregar, extender y finalizar sesiones de trampolín' }
+  { key:'gestionarTrampolin',   icon:'🦘', label:'Gestionar trampolín',      desc:'Puede agregar, extender y finalizar sesiones de trampolín' },
+  { key:'cierreCaja',           icon:'🏦', label:'Notificación de ganancias', desc:'Recibe una notificación automática con sus ganancias cuando el admin cierra la caja' }
 ];
 
 // ══════════════════════════════════════════
@@ -59,6 +60,7 @@ let editSaleId    = null;
 let prevPermisos  = {};
 let editUserPerms = {};
 let unsubVehicles = null, unsubSales = null, unsubUsers = null, unsubCurrentUser = null;
+let unsubCierres  = null; // listener de cierres de caja en tiempo real
 
 // ══════════════════════════════════════════
 //  ESTADO — TRAMPOLÍN
@@ -72,6 +74,22 @@ let rentKidPrecio      = 10;
 let rentKidPay         = 'yape';
 let unsubTrSlots       = null;
 let unsubTrampolineCfg = null;
+let unsubComisionCfg   = null;
+
+// Config de comisiones — editable desde el panel admin
+// tramos: [{ desde, pago }]  (el primer tramo < 100 usa fórmula automática)
+let comisionConfig = {
+  tramos: [
+    { desde: 100, pago: 45 },
+    { desde: 200, pago: 60 },
+    { desde: 300, pago: 80 },
+    { desde: 400, pago: 100 },
+    { desde: 500, pago: 120 },
+    { desde: 600, pago: 140 },
+    { desde: 700, pago: 160 },
+    { desde: 800, pago: 180 },
+  ]
+};
 
 // ══════════════════════════════════════════
 //  BOOT
@@ -158,9 +176,9 @@ window.doLogout = function() {
   closeM('mLogout');
   localStorage.removeItem(LS_SES);
   currentUser = null;
-  [unsubVehicles,unsubSales,unsubUsers,unsubCurrentUser,unsubTrSlots,unsubTrampolineCfg]
+  [unsubVehicles,unsubSales,unsubUsers,unsubCurrentUser,unsubTrSlots,unsubTrampolineCfg,unsubComisionCfg,unsubCierres]
     .forEach(u => { if (u) u(); });
-  unsubVehicles=unsubSales=unsubUsers=unsubCurrentUser=unsubTrSlots=unsubTrampolineCfg=null;
+  unsubVehicles=unsubSales=unsubUsers=unsubCurrentUser=unsubTrSlots=unsubTrampolineCfg=unsubComisionCfg=unsubCierres=null;
   prevPermisos = {};
   Object.values(sessions).forEach(s => { if (s.timerId) clearInterval(s.timerId); });
   Object.values(trTimers).forEach(t => clearInterval(t));
@@ -181,7 +199,9 @@ async function showApp() {
   subscribeVehicles();
   subscribeSales();
   subscribeTrampolineConfig();
+  subscribeComisionConfig();
   subscribeTrSlots();
+  subscribeCierres();
   if (isAdmin()) subscribeUsers();
 }
 
@@ -245,7 +265,43 @@ function subscribeTrampolineConfig() {
   });
 }
 
-// ── SLOTS FIJOS (como vehicles) — FUENTE DE VERDAD PARA TIEMPO REAL ──
+// ── CONFIG COMISIONES EMPLEADO ──
+function subscribeComisionConfig() {
+  if (unsubComisionCfg) unsubComisionCfg();
+  unsubComisionCfg = onSnapshot(doc(db,'config','comisiones'), snap => {
+    if (snap.exists() && snap.data().tramos?.length) {
+      comisionConfig = snap.data();
+    }
+    // Re-renderizar sección si el panel está activo
+    if (isAdmin()) renderComisionAdminConfig();
+  });
+}
+
+
+// ── LISTENER CIERRE DE CAJA — notifica a todos en tiempo real ──
+let _ultimoCierreId = null;
+
+function subscribeCierres() {
+  if (unsubCierres) unsubCierres();
+  const q = query(collection(db,'cierres_caja'), orderBy('fecha','desc'));
+  let primeraVez = true;
+  unsubCierres = onSnapshot(q, snap => {
+    if (snap.empty) { primeraVez = false; return; }
+    const ultimo = snap.docs[0];
+    // Al cargar la app, solo registrar el ID más reciente sin mostrar nada
+    if (primeraVez) { _ultimoCierreId = ultimo.id; primeraVez = false; return; }
+    // Solo reaccionar si es un cierre NUEVO
+    if (ultimo.id === _ultimoCierreId) return;
+    _ultimoCierreId = ultimo.id;
+    // Admin: siempre recibe la notificación
+    // Empleado: solo si tiene el permiso cierreCaja
+    if (isAdmin() || hasPermiso('cierreCaja')) {
+      mostrarCelebracionCierre(ultimo.data());
+    }
+  });
+}
+
+
 function subscribeTrSlots() {
   if (unsubTrSlots) unsubTrSlots();
   unsubTrSlots = onSnapshot(collection(db,'trampoline_slots'), snap => {
@@ -448,6 +504,9 @@ function renderHome() {
   document.getElementById('gridActive').innerHTML = inUse.map(v=>cardHTML(v)).join('');
   document.getElementById('emptyVeh').style.display = vehicles.length===0 ? '' : 'none';
   document.getElementById('gridAvail').innerHTML = avail.map(v=>cardHTML(v)).join('');
+  // Botón cierre de caja: solo visible para el admin
+  const ccBtn = document.getElementById('homeCierreCajaBtn');
+  if (ccBtn) ccBtn.style.display = isAdmin() ? '' : 'none';
 }
 
 function cardHTML(v) {
@@ -927,6 +986,80 @@ function renderTrampolineAdminConfig() {
     </div>`;
 }
 
+// ══════════════════════════════════════════
+//  PANEL ADMIN — CONFIG COMISIONES EMPLEADO
+// ══════════════════════════════════════════
+function renderComisionAdminConfig() {
+  const container = document.getElementById('apComisionConfig');
+  if (!container || !isAdmin()) return;
+
+  const tramos = [...(comisionConfig.tramos || [])].sort((a,b) => a.desde - b.desde);
+
+  container.innerHTML = `
+    <div style="padding:10px 15px 4px;font-size:11px;color:var(--tx2);font-weight:700;text-transform:uppercase;letter-spacing:.4px">
+      Tramo automático (sin configurar)
+    </div>
+    <div class="tr-cfg-row" style="opacity:.6">
+      <div class="tr-cfg-label-pill" style="background:var(--ambs);color:#92400E">Menos de S/100</div>
+      <div style="flex:1;font-size:12px;color:var(--tx2);padding:0 8px">(Total ÷ 2) − S/5 <em>automático</em></div>
+    </div>
+    <div style="padding:6px 15px 4px;font-size:11px;color:var(--tx2);font-weight:700;text-transform:uppercase;letter-spacing:.4px">
+      Tramos configurables
+    </div>
+    ${tramos.map((t,i) => `
+      <div class="tr-cfg-row">
+        <div class="tr-cfg-label-pill">Desde S/${t.desde}</div>
+        <div class="tr-cfg-fields">
+          <div class="tr-cfg-field">
+            <label class="tr-cfg-field-lbl">Desde S/</label>
+            <input class="tr-cfg-input" type="number" min="100" step="10" value="${t.desde}" id="cDesde-${i}">
+          </div>
+          <div class="tr-cfg-field">
+            <label class="tr-cfg-field-lbl">Pago S/</label>
+            <input class="tr-cfg-input" type="number" min="1" step="5" value="${t.pago}" id="cPago-${i}">
+          </div>
+        </div>
+        <button class="tr-cfg-del-btn" onclick="deleteTramo(${i})" title="Eliminar">🗑</button>
+      </div>`
+    ).join('')}`;
+}
+
+window.addTramo = function() {
+  if (!isAdmin()) return;
+  const tramos = comisionConfig.tramos || [];
+  const lastDesde = tramos.length > 0 ? Math.max(...tramos.map(t=>t.desde)) : 100;
+  const lastPago  = tramos.length > 0 ? tramos.find(t=>t.desde===lastDesde)?.pago || 45 : 45;
+  comisionConfig.tramos = [...tramos, { desde: lastDesde + 100, pago: lastPago + 20 }];
+  renderComisionAdminConfig();
+};
+
+window.deleteTramo = function(i) {
+  if (!isAdmin()) return;
+  const tramos = [...(comisionConfig.tramos || [])].sort((a,b)=>a.desde-b.desde);
+  if (tramos.length <= 1) { toast('⚠️ Debe haber al menos 1 tramo'); return; }
+  tramos.splice(i, 1);
+  comisionConfig.tramos = tramos;
+  renderComisionAdminConfig();
+};
+
+window.saveComisionConfig = async function() {
+  if (!isAdmin()) return;
+  const tramos = (comisionConfig.tramos || []).map((_,i) => ({
+    desde: parseInt(document.getElementById('cDesde-'+i)?.value) || 100,
+    pago:  parseInt(document.getElementById('cPago-'+i)?.value)  || 45
+  })).filter(t => t.desde >= 100 && t.pago > 0);
+
+  // Validar que no haya duplicados
+  const desdes = tramos.map(t=>t.desde);
+  if (new Set(desdes).size !== desdes.length) { toast('⚠️ Hay tramos con el mismo monto'); return; }
+
+  try {
+    await setDoc(doc(db,'config','comisiones'), { tramos });
+    toast('✅ Escala de comisiones guardada');
+  } catch(e) { toast('❌ Error al guardar.'); }
+};
+
+
 window.addPaquete = function() {
   if (!isAdmin()) return;
   if (!trampolineConfig.paquetes) trampolineConfig.paquetes = [];
@@ -1075,6 +1208,7 @@ function renderPanel() {
       <span style="color:var(--tx2)">›</span></div>`;
   }).join('') || '<div style="padding:12px 15px;font-size:13px;color:var(--tx2)">Sin empleados</div>';
   renderTrampolineAdminConfig();
+  renderComisionAdminConfig();
 }
 
 // ══════════════════════════════════════════
@@ -1346,12 +1480,249 @@ window.resetDay=async function(){
 };
 
 // ══════════════════════════════════════════
-//  UTILS
+//  CIERRE DE CAJA
 // ══════════════════════════════════════════
+
+// Ganancia del empleado usando comisionConfig (configurable desde el panel admin):
+// - Menos de S/100 → (total / 2) - 5  (fórmula automática)
+// - A partir de S/100 → busca el tramo más alto que el empleado alcanzó
+function calcComisionEmpleado(totalVendido) {
+  if (totalVendido <= 0) return 0;
+  if (totalVendido < 100) return Math.max(0, Math.round((totalVendido / 2) - 5));
+  // Ordenar tramos de mayor a menor y buscar el primero que aplica
+  const tramos = [...(comisionConfig.tramos || [])].sort((a,b) => b.desde - a.desde);
+  for (const t of tramos) {
+    if (totalVendido >= t.desde) return t.pago;
+  }
+  return 45; // fallback
+}
+
+// Abre el modal de cierre de caja
+window.openCierreCaja = function() {
+  if (!isAdmin()) { toast('⛔ Solo el admin puede abrir el cierre de caja'); return; }
+
+  const today     = todaySales();
+  const totalDia  = today.reduce((s,x)=>s+x.price, 0);
+  const yape      = today.filter(x=>x.payment==='yape').reduce((s,x)=>s+x.price, 0);
+  const efectivo  = today.filter(x=>x.payment==='cash').reduce((s,x)=>s+x.price, 0);
+  const totalVtas = today.length;
+
+  // Agrupar ventas por empleado
+  const byEmp = {};
+  today.forEach(s => {
+    const emp = s.by || '?';
+    if (!byEmp[emp]) byEmp[emp] = 0;
+    byEmp[emp] += s.price;
+  });
+
+  // Calcular comisiones
+  let totalComisiones = 0;
+  const empRows = Object.entries(byEmp).map(([emp, monto]) => {
+    const comision  = calcComisionEmpleado(monto);
+    totalComisiones += comision;
+    return { emp, monto, comision };
+  });
+
+  const gananciaNeta = totalDia - totalComisiones;
+
+  // Construir HTML de empleados
+  const empHTML = empRows.length === 0
+    ? `<div class="cc-empty">Sin ventas registradas hoy</div>`
+    : empRows.map(r => `
+        <div class="cc-emp-row">
+          <div class="cc-emp-info">
+            <span class="cc-emp-ico">👷</span>
+            <div>
+              <div class="cc-emp-name">@${r.emp}</div>
+              <div class="cc-emp-sub">Vendió S/${r.monto} · ${today.filter(s=>s.by===r.emp).length} ventas</div>
+            </div>
+          </div>
+          <div class="cc-emp-ganancia">
+            <div class="cc-emp-label">Su ganancia</div>
+            <div class="cc-emp-val">S/${r.comision}</div>
+          </div>
+        </div>`
+      ).join('');
+
+  // Inyectar datos en el modal
+  document.getElementById('ccTotalDia').textContent   = 'S/'+totalDia;
+  document.getElementById('ccTotalDia2').textContent  = 'S/'+totalDia;
+  document.getElementById('ccYape').textContent       = 'S/'+yape;
+  document.getElementById('ccEfectivo').textContent   = 'S/'+efectivo;
+  document.getElementById('ccVentas').textContent     = totalVtas;
+  document.getElementById('ccComisiones').textContent = 'S/'+totalComisiones;
+  document.getElementById('ccNeta').textContent       = 'S/'+gananciaNeta;
+  document.getElementById('ccEmpList').innerHTML      = empHTML;
+  document.getElementById('ccFecha').textContent      =
+    new Date().toLocaleDateString('es-PE',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+
+  // Mostrar sección de ganancia admin solo si es admin
+  const adminSec = document.getElementById('ccAdminSec');
+  if (adminSec) adminSec.style.display = isAdmin() ? '' : 'none';
+
+  // El botón confirmar solo lo ve el admin
+  const btnConfirmar = document.getElementById('ccBtnConfirmar');
+  if (btnConfirmar) btnConfirmar.style.display = isAdmin() ? '' : 'none';
+
+  openM('mCierreCaja');
+};
+
+// Confirmar cierre — guarda en Firestore; el listener notifica a todos en tiempo real
+window.confirmarCierreCaja = async function() {
+  if (!isAdmin()) { toast('⛔ Solo el admin puede confirmar el cierre'); return; }
+
+  const today    = todaySales();
+  const totalDia = today.reduce((s,x)=>s+x.price, 0);
+  const yape     = today.filter(x=>x.payment==='yape').reduce((s,x)=>s+x.price, 0);
+  const efectivo = today.filter(x=>x.payment==='cash').reduce((s,x)=>s+x.price, 0);
+
+  const byEmp = {};
+  today.forEach(s => {
+    const emp = s.by || '?';
+    if (!byEmp[emp]) byEmp[emp] = 0;
+    byEmp[emp] += s.price;
+  });
+
+  const comisiones = Object.entries(byEmp).map(([emp, monto]) => ({
+    emp, monto, comision: calcComisionEmpleado(monto)
+  }));
+  const totalComisiones = comisiones.reduce((s,c)=>s+c.comision, 0);
+  const gananciaNeta    = totalDia - totalComisiones;
+
+  try {
+    const btn = document.getElementById('ccBtnConfirmar');
+    if (btn) { btn.disabled = true; btn.textContent = 'Guardando...'; }
+
+    await addDoc(collection(db,'cierres_caja'), {
+      fecha:         Timestamp.now(),
+      totalDia,      yape,       efectivo,
+      totalVentas:   today.length,
+      comisiones,    totalComisiones,
+      gananciaNeta,  cerradoPor: currentUser.username
+    });
+
+    closeM('mCierreCaja');
+    // El onSnapshot de subscribeCierres se dispara en TODOS los dispositivos
+    // y llama mostrarCelebracionCierre() automáticamente para cada uno
+  } catch(e) {
+    console.error(e);
+    toast('❌ Error al guardar el cierre');
+    const btn = document.getElementById('ccBtnConfirmar');
+    if (btn) { btn.disabled = false; btn.textContent = '✅ Confirmar cierre de caja'; }
+  }
+};
+
+// Modal de celebración — se llama desde el listener en TODOS los dispositivos
+function mostrarCelebracionCierre(cierre) {
+  const { totalDia, yape, efectivo, comisiones=[], totalComisiones, gananciaNeta } = cierre;
+  const fecha = new Date().toLocaleDateString('es-PE',{day:'numeric',month:'long',year:'numeric'});
+
+  if (isAdmin()) {
+    // ── Vista del ADMIN ──
+    const empDetalles = comisiones.length > 0
+      ? comisiones.map(c =>
+          `<div class="ccb-emp-row">
+            <span>👷 @${c.emp}</span>
+            <strong>S/${c.comision}</strong>
+          </div>
+          <div class="ccb-emp-row" style="font-size:11px;padding-top:0;padding-bottom:4px">
+            <span style="padding-left:20px;color:rgba(255,255,255,.5)">Vendió S/${c.monto}</span>
+          </div>`
+        ).join('')
+      : `<div class="ccb-emp-row" style="color:rgba(255,255,255,.5)"><span>Sin empleados hoy</span></div>`;
+
+    document.getElementById('ccbTitulo').textContent      = '¡Caja cerrada! 🎉';
+    document.getElementById('ccbSubtitulo').textContent   = fecha;
+    document.getElementById('ccbGanancia').textContent    = 'S/'+gananciaNeta;
+    document.getElementById('ccbGananciaLbl').textContent = '👑 Tu ganancia neta';
+    document.getElementById('ccbDetalles').innerHTML = `
+      <div class="ccb-row"><span>💰 Total generado</span><strong>S/${totalDia}</strong></div>
+      <div class="ccb-row"><span>💜 Yape</span><strong>S/${yape}</strong></div>
+      <div class="ccb-row"><span>💵 Efectivo</span><strong>S/${efectivo}</strong></div>
+      <div class="ccb-divider"></div>
+      <div class="ccb-sub">Pagos a empleados</div>
+      ${empDetalles}
+      <div class="ccb-divider"></div>
+      <div class="ccb-row ccb-row--total"><span>✅ Tu ganancia</span><strong>S/${gananciaNeta}</strong></div>`;
+  } else {
+    // ── Vista del EMPLEADO ──
+    const miUsername = currentUser?.username || '?';
+    const miDato     = comisiones.find(c => c.emp === miUsername);
+    const miGanancia = miDato?.comision || 0;
+    const miVenta    = miDato?.monto    || 0;
+    // Contar mis alquileres del día
+    const misAlquileres = todaySales().filter(s => s.by === miUsername).length;
+
+    document.getElementById('ccbTitulo').textContent      = '¡Felicitaciones! 🎊';
+    document.getElementById('ccbSubtitulo').textContent   = fecha;
+    document.getElementById('ccbGanancia').textContent    = 'S/'+miGanancia;
+    document.getElementById('ccbGananciaLbl').textContent = '💵 Tu ganancia del día';
+    document.getElementById('ccbDetalles').innerHTML = `
+      <div class="ccb-row"><span>📦 Alquileres que hiciste</span><strong>${misAlquileres}</strong></div>
+      <div class="ccb-row"><span>💰 Lo que generaste</span><strong>S/${miVenta}</strong></div>
+      <div class="ccb-divider"></div>
+      <div class="ccb-row ccb-row--total"><span>🎉 Tu pago de hoy</span><strong>S/${miGanancia}</strong></div>`;
+  }
+
+  openM('mCierreBravo');
+  launchConfetti2();
+  playGananciaSound();
+}
+
+// Confetti para el modal de cierre (usa el canvas del modal)
+function launchConfetti2() {
+  const canvas = document.getElementById('ccbConfetti');
+  if (!canvas) return;
+  canvas.style.display = 'block';
+  const ctx = canvas.getContext('2d');
+  canvas.width  = canvas.offsetWidth;
+  canvas.height = canvas.offsetHeight;
+  const pieces = Array.from({length:80}, () => ({
+    x: Math.random()*canvas.width, y: -10 - Math.random()*60,
+    r: 4+Math.random()*7, d: 2.5+Math.random()*3,
+    color:['#FCD34D','#A78BFA','#34D399','#F87171','#60A5FA','#F472B6','#fff'][Math.floor(Math.random()*7)],
+    rot: Math.random()*360, spin:(Math.random()-.5)*9,
+    shape: Math.random()>.4 ? 'rect' : 'circle'
+  }));
+  let frame;
+  function draw() {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    pieces.forEach(p => {
+      ctx.save(); ctx.fillStyle=p.color;
+      ctx.translate(p.x,p.y); ctx.rotate(p.rot*Math.PI/180);
+      if (p.shape==='rect') ctx.fillRect(-p.r/2,-p.r/3,p.r,p.r/1.6);
+      else { ctx.beginPath(); ctx.arc(0,0,p.r/2,0,Math.PI*2); ctx.fill(); }
+      ctx.restore();
+      p.y+=p.d; p.x+=Math.sin(p.y*.025)*1.5; p.rot+=p.spin;
+    });
+    if (pieces.some(p=>p.y<canvas.height+20)) frame=requestAnimationFrame(draw);
+    else { ctx.clearRect(0,0,canvas.width,canvas.height); canvas.style.display='none'; }
+  }
+  draw();
+  setTimeout(()=>{ cancelAnimationFrame(frame); ctx.clearRect(0,0,canvas.width,canvas.height); canvas.style.display='none'; }, 5000);
+}
+
+// Sonido de fanfarria para el cierre
+function playGananciaSound() {
+  try {
+    const ctx = new (window.AudioContext||window.webkitAudioContext)();
+    [[523,.0,.12],[659,.1,.12],[784,.2,.12],[1047,.32,.35],[880,.52,.12],[1047,.65,.4]]
+    .forEach(([f,s,d])=>{
+      const o=ctx.createOscillator(),g=ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.type='sine'; o.frequency.value=f;
+      g.gain.setValueAtTime(.35,ctx.currentTime+s);
+      g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+s+d);
+      o.start(ctx.currentTime+s); o.stop(ctx.currentTime+s+d+.05);
+    });
+  } catch(_){}
+}
+
+
 window.openM =function(id){ document.getElementById(id).style.display='flex'; };
 window.closeM=function(id){ document.getElementById(id).style.display='none'; };
 document.addEventListener('click',e=>{
-  ['mRent','mVeh','mTimeUp','mLogout','mUser','mEditPago','mCancelViaje','mTrRent','mTrSlotEdit','mCancelTr'].forEach(id=>{
+  ['mRent','mVeh','mTimeUp','mLogout','mUser','mEditPago','mCancelViaje','mTrRent','mTrSlotEdit','mCancelTr','mCierreCaja','mCierreBravo'].forEach(id=>{
     const el=document.getElementById(id); if (el&&e.target===el) closeM(id);
   });
 });

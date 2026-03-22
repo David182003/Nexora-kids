@@ -80,12 +80,6 @@
           <div class="dc dc--t"><div class="dc-icon">🚗</div><div class="dc-val" id="dInUse">0</div><div class="dc-lbl">En uso</div></div>
           <div class="dc dc--r"><div class="dc-icon">🟢</div><div class="dc-val" id="dAvail">0</div><div class="dc-lbl">Disponibles</div></div>
         </div>
-        <!-- Botón cierre de caja -->
-        <div style="padding:0 12px 4px" id="homeCierreCajaBtn" style="display:none">
-          <button class="cc-home-btn" onclick="openCierreCaja()">
-            🏦 Ver cierre de caja del día
-          </button>
-        </div>
         <div class="sec" id="secActive" style="display:none">
           <div class="sec-head"><h2 class="sec-title">⏱ En uso ahora</h2></div>
           <div class="vg" id="gridActive"></div>
@@ -173,26 +167,8 @@
               <button class="cta" style="margin-bottom:0;flex:2;background:linear-gradient(135deg,#10B981,#059669)" onclick="saveTrampolineConfig()">💾 Guardar precios</button>
             </div>
           </div>
-
-          <!-- CONFIG COMISIONES EMPLEADO -->
-          <div class="ap-sec">
-            <div class="ap-sec-head">
-              <span class="ap-sec-ico">💰</span>
-              <span class="ap-sec-title">Escala de pago al empleado</span>
-            </div>
-            <div class="tr-cfg-row" style="opacity:.65;pointer-events:none">
-              <div class="tr-cfg-label-pill" style="background:var(--ambs);color:#92400E;white-space:nowrap">Menos de S/100</div>
-              <div style="flex:1;font-size:12px;color:var(--tx2);padding:0 10px;line-height:1.4">Fórmula automática<br><em>(Total ÷ 2) − S/5</em></div>
-            </div>
-            <div id="apComisionConfig"></div>
-            <div class="ap-action" style="display:flex;gap:8px">
-              <button class="cta" style="margin-bottom:0;flex:1" onclick="addTramo()">+ Tramo</button>
-              <button class="cta" style="margin-bottom:0;flex:2;background:linear-gradient(135deg,#F59E0B,#D97706)" onclick="saveComisionConfig()">💾 Guardar escala</button>
-            </div>
-          </div>
           <div class="ap-sec">
             <div class="ap-sec-head"><span class="ap-sec-ico">⚙️</span><span class="ap-sec-title">Acciones rápidas</span></div>
-            <div class="ap-row" onclick="openCierreCaja()"><span class="ap-row-ico">🏦</span><div class="ap-row-info"><div class="ap-row-name">Cierre de caja</div><div class="ap-row-sub">Resumen y ganancias del día</div></div><span style="color:var(--tx2)">›</span></div>
             <div class="ap-row" onclick="exportCSV()"><span class="ap-row-ico">📁</span><div class="ap-row-info"><div class="ap-row-name">Exportar ventas CSV</div><div class="ap-row-sub">Descargar historial</div></div><span style="color:var(--tx2)">›</span></div>
             <div class="ap-row" onclick="resetDay()"><span class="ap-row-ico">🔄</span><div class="ap-row-info"><div class="ap-row-name">Reiniciar datos del día</div><div class="ap-row-sub">Borrar ventas de hoy</div></div><span style="color:var(--tx2)">›</span></div>
           </div>
@@ -433,82 +409,6 @@
         <input type="hidden" id="cancelTrSlotId">
         <button class="cta-cancel" onclick="confirmCancelTrSlot()">🚫 Sí, cancelar turno</button>
         <button class="sec-btn" style="margin-top:0" onclick="closeM('mCancelTr')">Volver</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ══ MODAL CIERRE DE CAJA ══ -->
-  <div class="overlay" id="mCierreCaja" style="display:none">
-    <div class="sheet">
-      <div class="m-pill"></div>
-      <div class="m-head">
-        <span class="m-title">🏦 Cierre de Caja</span>
-        <button class="m-close" onclick="closeM('mCierreCaja')">✕</button>
-      </div>
-      <div class="m-body" style="padding-bottom:30px">
-
-        <!-- Fecha -->
-        <div class="cc-fecha" id="ccFecha"></div>
-
-        <!-- Resumen total -->
-        <div class="cc-total-banner">
-          <div class="cc-total-label">Total del día</div>
-          <div class="cc-total-val" id="ccTotalDia">S/0</div>
-          <div class="cc-pay-row">
-            <span class="cc-pay-chip cc-yape">💜 Yape <strong id="ccYape">S/0</strong></span>
-            <span class="cc-pay-chip cc-cash">💵 Efectivo <strong id="ccEfectivo">S/0</strong></span>
-            <span class="cc-pay-chip cc-count">📦 <strong id="ccVentas">0</strong> ventas</span>
-          </div>
-        </div>
-
-        <!-- Comisiones por empleado -->
-        <div class="cc-section-title">👷 Ganancias por empleado</div>
-        <div id="ccEmpList"></div>
-
-        <!-- Ganancia del admin (solo admin) -->
-        <div id="ccAdminSec">
-          <div class="cc-section-title">👑 Ganancia del administrador</div>
-          <div class="cc-admin-card">
-            <div class="cc-admin-row">
-              <span>Total generado</span>
-              <strong id="ccTotalDia2">S/0</strong>
-            </div>
-            <div class="cc-admin-row">
-              <span>− Comisiones empleados</span>
-              <strong class="cc-red" id="ccComisiones">S/0</strong>
-            </div>
-            <div class="cc-admin-row cc-admin-neta">
-              <span>✅ Tu ganancia neta</span>
-              <strong id="ccNeta">S/0</strong>
-            </div>
-          </div>
-        </div>
-
-        <!-- Botones -->
-        <button class="cta" id="ccBtnConfirmar" onclick="confirmarCierreCaja()" style="background:linear-gradient(135deg,#10B981,#059669)">
-          ✅ Confirmar cierre de caja
-        </button>
-        <button class="sec-btn" onclick="closeM('mCierreCaja')">Cerrar</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ══ MODAL CELEBRACIÓN CIERRE DE CAJA ══ -->
-  <div class="overlay" id="mCierreBravo" style="display:none">
-    <div class="sheet sheet--bravo">
-      <canvas id="ccbConfetti" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;display:none;border-radius:28px 28px 0 0"></canvas>
-      <div class="m-pill" style="background:rgba(255,255,255,.35)"></div>
-      <div class="ccb-body">
-        <div class="ccb-stars">✨✨✨</div>
-        <div class="ccb-trophy">🏆</div>
-        <h2 class="ccb-titulo" id="ccbTitulo">¡Caja cerrada!</h2>
-        <p class="ccb-subtitulo" id="ccbSubtitulo"></p>
-        <div class="ccb-ganancia-card">
-          <div class="ccb-ganancia-lbl" id="ccbGananciaLbl">Tu ganancia neta</div>
-          <div class="ccb-ganancia-val" id="ccbGanancia">S/0</div>
-        </div>
-        <div class="ccb-detalles" id="ccbDetalles"></div>
-        <button class="ccb-btn" onclick="closeM('mCierreBravo')">¡Excelente! 💪</button>
       </div>
     </div>
   </div>

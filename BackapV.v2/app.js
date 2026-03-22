@@ -1,4 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+ import { initTrampoline, destroyTrampoline, renderTrampolineView, openAddKidModal } from './trampoline.js';
 import {
   getFirestore, collection, doc, getDoc, getDocs, setDoc, addDoc,
   updateDoc, deleteDoc, query, where, orderBy, onSnapshot, Timestamp, writeBatch

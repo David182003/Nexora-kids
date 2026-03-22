@@ -12,7 +12,7 @@ const firebaseConfig = {
   messagingSenderId: "1024849178642",
   appId: "1:1024849178642:web:9c6bda5a5a193f3189e8cb"
 };
- 
+
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
@@ -22,20 +22,61 @@ const db = getFirestore(app);
 const LS_SES = 'nkm_session_v4';
 const EMOJIS = ['🚗','🚙','🏎️','🚕','🚓','🚒','🚑','🏍️','⚡','🌈','🚀','🛻'];
 
+// Definición de todos los permisos disponibles para empleados
+const PERMISOS_DEF = [
+  {
+    key: 'editarPago',
+    icon: '💳',
+    label: 'Editar método de pago',
+    desc: 'Puede cambiar el método de pago (Yape/Efectivo) en ventas registradas'
+  },
+  {
+    key: 'cancelarViaje',
+    icon: '🚫',
+    label: 'Cancelar viaje',
+    desc: 'Si un cliente se desanimó, puede cancelar el viaje en curso y liberar el vehículo sin contar la venta'
+  },
+  {
+    key: 'verStats',
+    icon: '📈',
+    label: 'Ver estadísticas',
+    desc: 'Acceso a la pestaña de estadísticas del día'
+  },
+  {
+    key: 'exportarCSV',
+    icon: '📁',
+    label: 'Exportar CSV',
+    desc: 'Puede descargar el historial de ventas en CSV'
+  },
+  {
+    key: 'verHistorialCompleto',
+    icon: '📋',
+    label: 'Ver historial completo',
+    desc: 'Puede ver todo el historial (semana/todo), no solo el de hoy'
+  }
+];
+
 // ══════════════════════════════════════════
 //  ESTADO LOCAL
 // ══════════════════════════════════════════
 let currentUser = null;
-let vehicles = [];   // cache local (sincronizado por onSnapshot)
-let allSales = [];   // cache local (sincronizado por onSnapshot)
-let users = [];      // cache local (sincronizado por onSnapshot)
-let sessions = {};   // { vehicleId: { endTime, timerId } }
+let vehicles = [];
+let allSales = [];
+let users = [];
+let sessions = {};
 let histFilter = 'today';
 let rentVehId = null, rentMin = 10, rentPay = 'yape';
 let editVehId = null, vType = 'small', vEmoji = '🚗';
 let editUserId = null, newURole = 'employee';
 let tuVehId = null;
-let unsubVehicles = null, unsubSales = null, unsubUsers = null;
+let cancelVehId = null; // vehículo a cancelar
+let unsubVehicles = null, unsubSales = null, unsubUsers = null, unsubCurrentUser = null;
+// Permisos del usuario en edición
+let editUserPerms = {};
+// ID de la venta que se está editando el pago
+let editSaleId = null;
+// Snapshot previo de permisos para detectar cambios
+let prevPermisos = {};
 
 // ══════════════════════════════════════════
 //  BOOT
@@ -66,6 +107,14 @@ window.addEventListener('DOMContentLoaded', async () => {
 });
 
 // ══════════════════════════════════════════
+//  HELPERS DE PERMISOS
+// ══════════════════════════════════════════
+function hasPermiso(key) {
+  if (isAdmin()) return true;
+  return !!(currentUser?.permisos?.[key]);
+}
+
+// ══════════════════════════════════════════
 //  LOGIN / LOGOUT
 // ══════════════════════════════════════════
 function showLogin() {
@@ -94,13 +143,11 @@ async function tryLogin() {
   const btn = document.getElementById('lBtn');
   btn.disabled = true; btn.textContent = 'Verificando...';
   try {
-    // Busca el usuario por username en Firestore
     const q = query(collection(db, 'users'), where('username', '==', username));
     const snap = await getDocs(q);
     if (snap.empty) throw new Error('not found');
     const userDoc = snap.docs[0];
     const userData = { id: userDoc.id, ...userDoc.data() };
-    // Verificación de contraseña (plain text — usar Firebase Auth en producción)
     if (userData.password !== password) throw new Error('wrong pass');
     err.style.display = 'none';
     currentUser = userData;
@@ -123,12 +170,12 @@ window.doLogout = function() {
   closeM('mLogout');
   localStorage.removeItem(LS_SES);
   currentUser = null;
-  // Desuscribir listeners
   if (unsubVehicles) unsubVehicles();
   if (unsubSales) unsubSales();
   if (unsubUsers) unsubUsers();
-  unsubVehicles = unsubSales = unsubUsers = null;
-  // Parar timers
+  if (unsubCurrentUser) unsubCurrentUser();
+  unsubVehicles = unsubSales = unsubUsers = unsubCurrentUser = null;
+  prevPermisos = {};
   Object.values(sessions).forEach(s => { if (s.timerId) clearInterval(s.timerId); });
   sessions = {};
   vehicles = []; allSales = []; users = [];
@@ -141,11 +188,13 @@ window.doLogout = function() {
 // ══════════════════════════════════════════
 async function showApp() {
   document.getElementById('app').style.display = 'flex';
+  // Inicializar snapshot previo de permisos al entrar
+  prevPermisos = { ...(currentUser?.permisos || {}) };
   setupTopbar(); buildTabs();
+  subscribeCurrentUser();
   subscribeVehicles();
   subscribeSales();
   if (isAdmin()) subscribeUsers();
-  restoreTimersFromVehicles();
 }
 
 function subscribeVehicles() {
@@ -154,7 +203,6 @@ function subscribeVehicles() {
     vehicles = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     renderHome();
     if (isAdmin()) { renderAdmin(); renderPanel(); }
-    // Restaurar timers para vehículos en uso que aún no tienen timer corriendo
     vehicles.forEach(v => {
       if ((v.status === 'in-use') && v.timerEndAt && !sessions[v.id]) {
         const endTime = v.timerEndAt.toMillis ? v.timerEndAt.toMillis() : v.timerEndAt;
@@ -173,13 +221,12 @@ function subscribeSales() {
       const data = d.data();
       return {
         id: d.id, ...data,
-        // Normaliza el timestamp de Firestore a milisegundos JS
         date: data.date?.toMillis ? data.date.toMillis() : data.date
       };
     });
     renderHome();
     renderHistory();
-    renderStats();
+    if (hasPermiso('verStats')) renderStats();
     if (isAdmin()) renderPanel();
   });
 }
@@ -192,8 +239,122 @@ function subscribeUsers() {
   });
 }
 
-async function restoreTimersFromVehicles() {
-  // Los timers se restauran en subscribeVehicles al recibir los datos
+// ── LISTENER EN TIEMPO REAL DEL USUARIO ACTUAL ──
+function subscribeCurrentUser() {
+  if (unsubCurrentUser) unsubCurrentUser();
+  if (!currentUser?.id) return;
+  unsubCurrentUser = onSnapshot(doc(db, 'users', currentUser.id), snap => {
+    if (!snap.exists()) return;
+    const updatedData = { id: snap.id, ...snap.data() };
+    const oldPerms = currentUser?.permisos || {};
+    const newPerms = updatedData?.permisos || {};
+
+    // Detectar permisos NUEVOS (pasaron de false/undefined → true)
+    const permisosGanados = PERMISOS_DEF.filter(p =>
+      !oldPerms[p.key] && !!newPerms[p.key]
+    );
+    // Detectar permisos REVOCADOS (pasaron de true → false/undefined)
+    const permisosRevocados = PERMISOS_DEF.filter(p =>
+      !!oldPerms[p.key] && !newPerms[p.key]
+    );
+
+    // Actualizar currentUser en memoria y localStorage
+    currentUser = updatedData;
+    localStorage.setItem(LS_SES, JSON.stringify({ id: currentUser.id, username: currentUser.username }));
+
+    // Si no es admin, reconstruir UI con nuevos permisos
+    if (!isAdmin()) {
+      buildTabs();
+      renderHistory();
+      if (hasPermiso('verStats')) renderStats();
+
+      // Mostrar notificación de permisos ganados
+      if (permisosGanados.length > 0) {
+        setTimeout(() => showPermisoCelebration(permisosGanados), 300);
+      }
+      // Mostrar notificación de permisos revocados
+      if (permisosRevocados.length > 0) {
+        setTimeout(() => showPermisoRevocado(permisosRevocados), 300);
+      }
+    }
+  });
+}
+
+// ── CELEBRACIÓN DE NUEVO PERMISO ──
+function showPermisoCelebration(permisos) {
+  // Construir contenido del modal
+  const permList = permisos.map(p => `
+    <div class="perm-cel-item">
+      <div class="perm-cel-icon-wrap">${p.icon}</div>
+      <div class="perm-cel-info">
+        <div class="perm-cel-label">${p.label}</div>
+        <div class="perm-cel-desc">${p.desc}</div>
+      </div>
+    </div>`).join('');
+
+  document.getElementById('permCelContent').innerHTML = permList;
+  document.getElementById('permCelTitle').textContent =
+    permisos.length === 1 ? '¡Tienes un nuevo permiso!' : `¡Tienes ${permisos.length} nuevos permisos!`;
+  openM('mPermCel');
+  playPermSound();
+  launchConfetti();
+}
+
+// ── REVOCACIÓN DE PERMISO ──
+function showPermisoRevocado(permisos) {
+  const names = permisos.map(p => `${p.icon} ${p.label}`).join(', ');
+  toast(`⚠️ Permiso revocado: ${names}`);
+}
+
+// ── CONFETTI LIGERO ──
+function launchConfetti() {
+  const canvas = document.getElementById('confettiCanvas');
+  if (!canvas) return;
+  canvas.style.display = 'block';
+  const ctx = canvas.getContext('2d');
+  canvas.width = canvas.offsetWidth;
+  canvas.height = canvas.offsetHeight;
+  const pieces = Array.from({length: 60}, () => ({
+    x: Math.random() * canvas.width,
+    y: -10 - Math.random() * 80,
+    r: 5 + Math.random() * 7,
+    d: 2 + Math.random() * 3,
+    color: ['#7C3AED','#A78BFA','#F59E0B','#10B981','#EC4899','#3B82F6'][Math.floor(Math.random()*6)],
+    rot: Math.random() * 360,
+    spin: (Math.random() - 0.5) * 8,
+    shape: Math.random() > 0.5 ? 'rect' : 'circle'
+  }));
+  let frame;
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    pieces.forEach(p => {
+      ctx.save(); ctx.fillStyle = p.color;
+      ctx.translate(p.x, p.y); ctx.rotate(p.rot * Math.PI / 180);
+      if (p.shape === 'rect') ctx.fillRect(-p.r/2, -p.r/3, p.r, p.r/1.8);
+      else { ctx.beginPath(); ctx.arc(0,0,p.r/2,0,Math.PI*2); ctx.fill(); }
+      ctx.restore();
+      p.y += p.d; p.x += Math.sin(p.y * 0.03) * 1.2; p.rot += p.spin;
+    });
+    if (pieces.some(p => p.y < canvas.height + 20)) frame = requestAnimationFrame(draw);
+    else { ctx.clearRect(0, 0, canvas.width, canvas.height); canvas.style.display = 'none'; }
+  }
+  draw();
+  setTimeout(() => { cancelAnimationFrame(frame); ctx.clearRect(0,0,canvas.width,canvas.height); canvas.style.display='none'; }, 4000);
+}
+
+// ── SONIDO DE CELEBRACIÓN ──
+function playPermSound() {
+  try {
+    const ctx = new (window.AudioContext||window.webkitAudioContext)();
+    [[523,.0,.12],[659,.13,.12],[784,.26,.12],[1047,.39,.25],[784,.55,.1],[1047,.67,.3]].forEach(([f,s,d]) => {
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.type = 'sine'; o.frequency.value = f;
+      g.gain.setValueAtTime(0.3, ctx.currentTime + s);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + s + d);
+      o.start(ctx.currentTime + s); o.stop(ctx.currentTime + s + d + 0.05);
+    });
+  } catch(_) {}
 }
 
 // ══════════════════════════════════════════
@@ -213,9 +374,11 @@ function setupTopbar() {
 }
 
 function buildTabs() {
-  const tabs = isAdmin()
-    ? [{k:'home',l:'🏠 Inicio'},{k:'history',l:'📋 Ventas'},{k:'stats',l:'📈 Stats'},{k:'admin',l:'🚗 Carros'},{k:'panel',l:'👑 Panel Admin'}]
-    : [{k:'home',l:'🏠 Inicio'},{k:'history',l:'📋 Ventas'},{k:'stats',l:'📈 Stats'}];
+  let tabs = [{k:'home',l:'🏠 Inicio'},{k:'history',l:'📋 Ventas'}];
+  if (hasPermiso('verStats')) tabs.push({k:'stats',l:'📈 Stats'});
+  if (isAdmin()) {
+    tabs.push({k:'admin',l:'🚗 Carros'},{k:'panel',l:'👑 Panel Admin'});
+  }
   document.getElementById('tabsBar').innerHTML = tabs.map(t =>
     `<button class="tab-btn${t.k==='home'?' active':''}" data-tab="${t.k}" onclick="switchTab('${t.k}')">${t.l}</button>`
   ).join('');
@@ -223,7 +386,7 @@ function buildTabs() {
   b.style.display = 'flex'; b.className = 'role-banner ' + (isAdmin() ? 'admin' : 'employee');
   b.innerHTML = isAdmin()
     ? `<span style="font-size:18px">👑</span>Hola, <strong>${currentUser.name}</strong> &nbsp;·&nbsp; Administrador`
-    : `<span style="font-size:18px">👷</span>Hola, <strong>${currentUser.name}</strong> &nbsp;·&nbsp;`;
+    : `<span style="font-size:18px">👷</span>Hola, <strong>${currentUser.name}</strong> &nbsp;·&nbsp; Empleado`;
 }
 
 window.switchTab = function(k) {
@@ -237,7 +400,7 @@ window.switchTab = function(k) {
 };
 
 // ══════════════════════════════════════════
-//  RENDER
+//  RENDER HOME
 // ══════════════════════════════════════════
 function renderHome() {
   const today = todaySales();
@@ -257,14 +420,29 @@ function cardHTML(v) {
   const pL = v.type === 'large' ? 'S/10×10min' : 'S/5×10min';
   const tL = v.type === 'large' ? '🚙 Grande' : '🚗 Pequeño';
   let timer = '', acts = '';
+  const canCancel = hasPermiso('cancelarViaje');
   if (inUse) {
     const se = sessions[v.id];
     const rem = se ? Math.max(0, se.endTime - Date.now()) : 0;
     timer = `<div class="vc-timer" id="tmr-${v.id}">${fmtTime(rem)}</div>`;
-    acts = `<div class="vc-acts"><button class="vbtn vbtn-a" onclick="extendVeh('${v.id}',10)">+10 min</button><button class="vbtn vbtn-r" onclick="freeVeh('${v.id}')">Liberar</button></div>`;
+    const cancelBtn = canCancel
+      ? `<button class="vbtn vbtn-cancel" onclick="openCancelModal('${v.id}')" title="Cancelar viaje">🚫</button>`
+      : '';
+    acts = `<div class="vc-acts">
+      <button class="vbtn vbtn-a" onclick="extendVeh('${v.id}',10)">+10</button>
+      <button class="vbtn vbtn-r" onclick="freeVeh('${v.id}')">✔ Fin</button>
+      ${cancelBtn}
+    </div>`;
   } else if (over) {
     timer = `<div class="vc-timer urgent" id="tmr-${v.id}">⏰ FIN</div>`;
-    acts = `<div class="vc-acts"><button class="vbtn vbtn-a" onclick="extendVeh('${v.id}',10)">+10 min</button><button class="vbtn vbtn-t" onclick="freeVeh('${v.id}')">Liberar</button></div>`;
+    const cancelBtn = canCancel
+      ? `<button class="vbtn vbtn-cancel" onclick="openCancelModal('${v.id}')" title="Cancelar viaje">🚫</button>`
+      : '';
+    acts = `<div class="vc-acts">
+      <button class="vbtn vbtn-a" onclick="extendVeh('${v.id}',10)">+10</button>
+      <button class="vbtn vbtn-t" onclick="freeVeh('${v.id}')">✔ Fin</button>
+      ${cancelBtn}
+    </div>`;
   } else {
     const editBtn = isAdmin() ? `<button class="vbtn vbtn-e" onclick="openEditModal('${v.id}')">✏️</button>` : '';
     acts = `<div class="vc-acts"><button class="vbtn vbtn-p" onclick="openRentModal('${v.id}')">🚀 Alquilar</button>${editBtn}</div>`;
@@ -275,24 +453,55 @@ function cardHTML(v) {
     ${timer}${acts}</div>`;
 }
 
+// ══════════════════════════════════════════
+//  RENDER HISTORY
+// ══════════════════════════════════════════
 function renderHistory() {
   const sales = filteredSales();
   const list = document.getElementById('saleList'), empty = document.getElementById('emptySales');
+
+  // Controlar botón exportar CSV según permiso
+  const exportBtn = document.getElementById('btnExportCSV');
+  if (exportBtn) exportBtn.style.display = hasPermiso('exportarCSV') ? '' : 'none';
+
+  // Controlar filtros de historial completo
+  const filterWeek = document.getElementById('fbWeek');
+  const filterAll = document.getElementById('fbAll');
+  if (filterWeek) filterWeek.style.display = hasPermiso('verHistorialCompleto') ? '' : 'none';
+  if (filterAll) filterAll.style.display = hasPermiso('verHistorialCompleto') ? '' : 'none';
+
   if (!sales.length) { list.innerHTML = ''; empty.style.display = ''; return; }
   empty.style.display = 'none';
+
+  const canEditPago = hasPermiso('editarPago');
+
   list.innerHTML = [...sales].map(s => {
     const d = new Date(s.date);
     const dt = d.toLocaleDateString('es-PE',{day:'numeric',month:'short'});
     const tm = d.toLocaleTimeString('es-PE',{hour:'2-digit',minute:'2-digit'});
     const pay = s.payment === 'yape' ? '💜 Yape' : '💵 Efectivo';
     const by = s.by ? ` · ${s.by}` : '';
-    return `<div class="si"><div class="si-emoji">${s.vEmoji||'🚗'}</div>
-      <div class="si-info"><div class="si-name">${s.vName}</div><div class="si-det">${s.min} min · ${dt} ${tm}${by}</div></div>
-      <div class="si-right"><div class="si-price">S/${s.price}</div><div class="si-pay">${pay}</div></div></div>`;
+    const editBtn = canEditPago
+      ? `<button class="edit-pay-btn" onclick="openEditPagoModal('${s.id}','${s.payment}')" title="Editar método de pago">✏️</button>`
+      : '';
+    return `<div class="si">
+      <div class="si-emoji">${s.vEmoji||'🚗'}</div>
+      <div class="si-info">
+        <div class="si-name">${s.vName}</div>
+        <div class="si-det">${s.min} min · ${dt} ${tm}${by}</div>
+      </div>
+      <div class="si-right">
+        <div class="si-price">S/${s.price}</div>
+        <div class="si-pay-row">${editBtn}<span class="si-pay">${pay}</span></div>
+      </div></div>`;
   }).join('');
 }
 
+// ══════════════════════════════════════════
+//  RENDER STATS
+// ══════════════════════════════════════════
 function renderStats() {
+  if (!hasPermiso('verStats')) return;
   const today = todaySales();
   const total = today.reduce((s,x)=>s+x.price,0);
   const min = today.reduce((s,x)=>s+x.min,0);
@@ -308,6 +517,9 @@ function renderStats() {
     : '<div class="empty"><span class="empty-ico">📊</span>Sin datos hoy.</div>';
 }
 
+// ══════════════════════════════════════════
+//  RENDER ADMIN + PANEL
+// ══════════════════════════════════════════
 function renderAdmin() {
   if (!isAdmin()) return;
   const list = document.getElementById('adminList'), empty = document.getElementById('emptyAdmin');
@@ -332,12 +544,54 @@ function renderPanel() {
   document.getElementById('apFleetList').innerHTML = vehicles.map(v=>`<div class="ap-row" onclick="openEditModal('${v.id}');switchTab('admin')">
     <span class="ap-row-ico">${v.emoji}</span><div class="ap-row-info"><div class="ap-row-name">${v.name}</div><div class="ap-row-sub">${v.type==='large'?'Grande':'Pequeño'} · ${stLbl[v.status]||v.status}</div></div><span style="color:var(--tx2)">›</span></div>`).join('')
     || '<div style="padding:12px 15px;font-size:13px;color:var(--tx2)">Sin vehículos</div>';
+
   const emps = users.filter(u => u.role === 'employee');
   setText('apEmpN', emps.length);
-  document.getElementById('apEmpList').innerHTML = emps.map(u=>`<div class="ap-row" onclick="openEditUserModal('${u.id}')">
-    <span class="ap-row-ico">👷</span><div class="ap-row-info"><div class="ap-row-name">${u.name}</div><div class="ap-row-sub">@${u.username}</div></div><span style="color:var(--tx2)">›</span></div>`).join('')
-    || '<div style="padding:12px 15px;font-size:13px;color:var(--tx2)">Sin empleados</div>';
+  document.getElementById('apEmpList').innerHTML = emps.map(u => {
+    const permsCount = Object.values(u.permisos || {}).filter(Boolean).length;
+    return `<div class="ap-row" onclick="openEditUserModal('${u.id}')">
+      <span class="ap-row-ico">👷</span>
+      <div class="ap-row-info">
+        <div class="ap-row-name">${u.name}</div>
+        <div class="ap-row-sub">@${u.username} · <span class="perm-count-badge">${permsCount} permiso${permsCount !== 1 ? 's' : ''}</span></div>
+      </div>
+      <span style="color:var(--tx2)">›</span></div>`;
+  }).join('') || '<div style="padding:12px 15px;font-size:13px;color:var(--tx2)">Sin empleados</div>';
 }
+
+// ══════════════════════════════════════════
+//  MODAL EDITAR PAGO
+// ══════════════════════════════════════════
+window.openEditPagoModal = function(saleId, currentPayment) {
+  if (!hasPermiso('editarPago')) {
+    toast('⛔ No tienes permiso para editar pagos');
+    return;
+  }
+  editSaleId = saleId;
+  // Seleccionar el método actual
+  selEditPay(currentPayment || 'yape');
+  openM('mEditPago');
+};
+
+window.selEditPay = function(p) {
+  document.getElementById('editPayYape').classList.toggle('active', p === 'yape');
+  document.getElementById('editPayCash').classList.toggle('active', p === 'cash');
+  document.getElementById('mEditPago').dataset.selectedPay = p;
+};
+
+window.confirmEditPago = async function() {
+  if (!editSaleId) return;
+  const newPay = document.getElementById('mEditPago').dataset.selectedPay || 'yape';
+  try {
+    await updateDoc(doc(db, 'sales', editSaleId), { payment: newPay });
+    closeM('mEditPago');
+    toast('✅ Método de pago actualizado');
+    editSaleId = null;
+  } catch(e) {
+    console.error('Error editando pago:', e);
+    toast('❌ Error al actualizar pago');
+  }
+};
 
 // ══════════════════════════════════════════
 //  ALQUILER
@@ -379,22 +633,14 @@ window.confirmRent = async function() {
   const endTime = Date.now() + rentMin * 60 * 1000;
   closeM('mRent');
   try {
-    // Actualizar estado del vehículo en Firestore
     await updateDoc(doc(db,'vehicles',v.id), {
       status: 'in-use',
       timerEndAt: Timestamp.fromMillis(endTime)
     });
-    // Guardar venta en Firestore
     await addDoc(collection(db,'sales'), {
-      vId: v.id,
-      vName: v.name,
-      vEmoji: v.emoji,
-      vType: v.type,
-      min: rentMin,
-      price,
-      payment: rentPay,
-      date: Timestamp.now(),
-      by: currentUser?.username || '?'
+      vId: v.id, vName: v.name, vEmoji: v.emoji, vType: v.type,
+      min: rentMin, price, payment: rentPay,
+      date: Timestamp.now(), by: currentUser?.username || '?'
     });
     startTimer(v.id, endTime);
     toast(`🚀 ${v.name} · S/${price}`);
@@ -428,10 +674,7 @@ function startTimer(vehicleId, endTime) {
 async function handleTimeOver(vehicleId) {
   const v = vehicles.find(x => x.id === vehicleId);
   try {
-    await updateDoc(doc(db,'vehicles',vehicleId), {
-      status: 'time-over',
-      timerEndAt: null
-    });
+    await updateDoc(doc(db,'vehicles',vehicleId), { status: 'time-over', timerEndAt: null });
   } catch(e) { console.error('Error actualizando time-over:', e); }
   playAlert();
   tuVehId = vehicleId;
@@ -445,33 +688,84 @@ window.extendVeh = async function(id, extra) {
   const newEnd = Math.max(base, Date.now()) + extra * 60 * 1000;
   const v = vehicles.find(x=>x.id===id);
   try {
-    await updateDoc(doc(db,'vehicles',id), {
-      status: 'in-use',
-      timerEndAt: Timestamp.fromMillis(newEnd)
-    });
+    await updateDoc(doc(db,'vehicles',id), { status: 'in-use', timerEndAt: Timestamp.fromMillis(newEnd) });
     startTimer(id, newEnd);
     toast(`⏱ +${extra} min · S/${calcPrice(v?.type||'small',extra)}`);
-  } catch(e) {
-    console.error('Error extendiendo:', e);
-    toast('❌ Error al extender tiempo.');
-  }
+  } catch(e) { toast('❌ Error al extender tiempo.'); }
 };
 
 window.freeVeh = async function(id) {
   if (sessions[id]?.timerId) { clearInterval(sessions[id].timerId); delete sessions[id]; }
   try {
-    await updateDoc(doc(db,'vehicles',id), {
-      status: 'available',
-      timerEndAt: null
-    });
+    await updateDoc(doc(db,'vehicles',id), { status: 'available', timerEndAt: null });
     toast('🟢 Vehículo liberado');
-  } catch(e) {
-    console.error('Error liberando vehículo:', e);
-    toast('❌ Error al liberar vehículo.');
-  }
+  } catch(e) { toast('❌ Error al liberar vehículo.'); }
 };
 
 window.addTenFromAlert = function() { closeM('mTimeUp'); if (tuVehId) extendVeh(tuVehId, 10); };
+
+// ══════════════════════════════════════════
+//  CANCELAR VIAJE
+// ══════════════════════════════════════════
+window.openCancelModal = function(id) {
+  if (!hasPermiso('cancelarViaje')) {
+    toast('⛔ No tienes permiso para cancelar viajes');
+    return;
+  }
+  const v = vehicles.find(x => x.id === id);
+  if (!v) return;
+  cancelVehId = id;
+  // Mostrar info en el modal
+  document.getElementById('cancelVehEmoji').textContent = v.emoji;
+  document.getElementById('cancelVehName').textContent = v.name;
+  // Buscar la venta más reciente de este vehículo (la que se cancelaría)
+  const ventaReciente = allSales
+    .filter(s => s.vId === id)
+    .sort((a,b) => b.date - a.date)[0];
+  if (ventaReciente) {
+    const mins = ventaReciente.min;
+    const precio = ventaReciente.price;
+    const pay = ventaReciente.payment === 'yape' ? '💜 Yape' : '💵 Efectivo';
+    document.getElementById('cancelVentaInfo').innerHTML =
+      `<div class="cancel-venta-row"><span>⏱ Tiempo alquilado</span><strong>${mins} min</strong></div>
+       <div class="cancel-venta-row"><span>💰 Monto</span><strong>S/${precio}</strong></div>
+       <div class="cancel-venta-row"><span>💳 Pago registrado</span><strong>${pay}</strong></div>`;
+    document.getElementById('cancelVentaId').value = ventaReciente.id;
+  } else {
+    document.getElementById('cancelVentaInfo').innerHTML =
+      `<div class="cancel-venta-row" style="color:var(--tx2)">Sin venta registrada asociada</div>`;
+    document.getElementById('cancelVentaId').value = '';
+  }
+  openM('mCancelViaje');
+};
+
+window.confirmCancelViaje = async function() {
+  if (!hasPermiso('cancelarViaje') || !cancelVehId) return;
+  const v = vehicles.find(x => x.id === cancelVehId);
+  const ventaId = document.getElementById('cancelVentaId').value;
+  closeM('mCancelViaje');
+  // Parar timer
+  if (sessions[cancelVehId]?.timerId) {
+    clearInterval(sessions[cancelVehId].timerId);
+    delete sessions[cancelVehId];
+  }
+  try {
+    // Liberar vehículo
+    await updateDoc(doc(db, 'vehicles', cancelVehId), {
+      status: 'available',
+      timerEndAt: null
+    });
+    // Eliminar la venta de Firestore (no cuenta como ingreso)
+    if (ventaId) {
+      await deleteDoc(doc(db, 'sales', ventaId));
+    }
+    toast(`🚫 Viaje cancelado · ${v?.name || 'Vehículo'} disponible`);
+  } catch(e) {
+    console.error('Error cancelando viaje:', e);
+    toast('❌ Error al cancelar el viaje');
+  }
+  cancelVehId = null;
+};
 
 // ══════════════════════════════════════════
 //  VEHICLE CRUD (solo admin)
@@ -521,16 +815,11 @@ window.saveVehicle = async function() {
       await updateDoc(doc(db,'vehicles',editVehId), { name, type: vType, emoji: vEmoji });
       toast('✅ Vehículo actualizado');
     } else {
-      await addDoc(collection(db,'vehicles'), {
-        name, type: vType, emoji: vEmoji, status: 'available', timerEndAt: null
-      });
+      await addDoc(collection(db,'vehicles'), { name, type: vType, emoji: vEmoji, status: 'available', timerEndAt: null });
       toast('✅ Vehículo agregado');
     }
     closeM('mVeh');
-  } catch(e) {
-    console.error('Error guardando vehículo:', e);
-    toast('❌ Error al guardar vehículo.');
-  }
+  } catch(e) { toast('❌ Error al guardar vehículo.'); }
 };
 
 window.deleteVehicle = async function() {
@@ -539,43 +828,74 @@ window.deleteVehicle = async function() {
   try {
     await deleteDoc(doc(db,'vehicles',editVehId));
     closeM('mVeh'); toast('🗑️ Vehículo eliminado');
-  } catch(e) {
-    console.error('Error eliminando vehículo:', e);
-    toast('❌ Error al eliminar.');
-  }
+  } catch(e) { toast('❌ Error al eliminar.'); }
 };
 
 // ══════════════════════════════════════════
-//  USER CRUD (solo admin)
+//  USER CRUD + PERMISOS (solo admin)
 // ══════════════════════════════════════════
 window.openAddUserModal = function() {
   if (!isAdmin()) return;
-  editUserId = null; newURole = 'employee';
+  editUserId = null; newURole = 'employee'; editUserPerms = {};
   setText('mUserTitle','Agregar Empleado');
   document.getElementById('uName').value = '';
   document.getElementById('uUser').value = '';
   document.getElementById('uPass').value = '';
   document.getElementById('btnDelUser').style.display = 'none';
-  selURole('employee'); openM('mUser');
+  selURole('employee');
+  renderPermsUI({});
+  openM('mUser');
 };
 
 window.openEditUserModal = function(id) {
   if (!isAdmin()) return;
   const u = users.find(x=>x.id===id); if (!u) return;
-  editUserId = id; newURole = u.role;
+  editUserId = id; newURole = u.role; editUserPerms = { ...(u.permisos || {}) };
   setText('mUserTitle','Editar Usuario');
   document.getElementById('uName').value = u.name;
   document.getElementById('uUser').value = u.username;
   document.getElementById('uPass').value = '';
-  // No mostrar eliminar para el admin principal
   document.getElementById('btnDelUser').style.display = (u.isMainAdmin) ? 'none' : '';
-  selURole(u.role); openM('mUser');
+  selURole(u.role);
+  renderPermsUI(editUserPerms);
+  openM('mUser');
 };
 
 window.selURole = function(r) {
   newURole = r;
   document.getElementById('rEmp').classList.toggle('active',r==='employee');
   document.getElementById('rAdm').classList.toggle('active',r==='admin');
+  // Mostrar/ocultar sección de permisos según rol
+  const permsSection = document.getElementById('permsSection');
+  if (permsSection) permsSection.style.display = r === 'employee' ? '' : 'none';
+};
+
+function renderPermsUI(perms) {
+  const container = document.getElementById('permsContainer');
+  if (!container) return;
+  container.innerHTML = PERMISOS_DEF.map(p => {
+    const active = !!(perms[p.key]);
+    return `<div class="perm-item ${active ? 'active' : ''}" id="permItem-${p.key}" onclick="togglePerm('${p.key}')">
+      <div class="perm-left">
+        <span class="perm-icon">${p.icon}</span>
+        <div class="perm-info">
+          <div class="perm-label">${p.label}</div>
+          <div class="perm-desc">${p.desc}</div>
+        </div>
+      </div>
+      <div class="perm-toggle ${active ? 'on' : ''}" id="permToggle-${p.key}">
+        <div class="perm-knob"></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+window.togglePerm = function(key) {
+  editUserPerms[key] = !editUserPerms[key];
+  const item = document.getElementById('permItem-' + key);
+  const toggle = document.getElementById('permToggle-' + key);
+  if (item) item.classList.toggle('active', editUserPerms[key]);
+  if (toggle) toggle.classList.toggle('on', editUserPerms[key]);
 };
 
 window.saveUser = async function() {
@@ -585,11 +905,11 @@ window.saveUser = async function() {
   const password = document.getElementById('uPass').value;
   if (!name || !username) { toast('⚠️ Completa nombre y usuario'); return; }
   try {
+    const permsToSave = newURole === 'employee' ? editUserPerms : {};
     if (editUserId) {
-      const updateData = { name, username, role: newURole };
+      const updateData = { name, username, role: newURole, permisos: permsToSave };
       if (password.length >= 4) updateData.password = password;
       await updateDoc(doc(db,'users',editUserId), updateData);
-      // Si editamos el usuario actual, actualizar sesión
       if (currentUser.id === editUserId) {
         currentUser = { ...currentUser, ...updateData };
         localStorage.setItem(LS_SES, JSON.stringify({ id: currentUser.id, username: currentUser.username }));
@@ -597,12 +917,14 @@ window.saveUser = async function() {
       }
       toast('✅ Usuario actualizado');
     } else {
-      // Verificar que el username no exista
       const q = query(collection(db,'users'), where('username','==',username));
       const snap = await getDocs(q);
       if (!snap.empty) { toast('⚠️ Ese usuario ya existe'); return; }
       if (password.length < 4) { toast('⚠️ Contraseña mínimo 4 caracteres'); return; }
-      await addDoc(collection(db,'users'), { name, username, password, role: newURole, isMainAdmin: false });
+      await addDoc(collection(db,'users'), {
+        name, username, password, role: newURole,
+        isMainAdmin: false, permisos: permsToSave
+      });
       toast('✅ Empleado agregado');
     }
     closeM('mUser');
@@ -621,10 +943,7 @@ window.deleteUser = async function() {
   try {
     await deleteDoc(doc(db,'users',editUserId));
     closeM('mUser'); toast('🗑️ Usuario eliminado');
-  } catch(e) {
-    console.error('Error eliminando usuario:', e);
-    toast('❌ Error al eliminar usuario.');
-  }
+  } catch(e) { toast('❌ Error al eliminar usuario.'); }
 };
 
 // ══════════════════════════════════════════
@@ -637,18 +956,25 @@ function todaySales() {
 
 function filteredSales() {
   const now = Date.now(), day = 86400000, week = 7*day;
+  // Si no tiene permiso de historial completo, solo hoy
+  if (!hasPermiso('verHistorialCompleto')) return allSales.filter(x => x.date >= now - day);
   if (histFilter === 'today') return allSales.filter(x => x.date >= now - day);
   if (histFilter === 'week') return allSales.filter(x => x.date >= now - week);
   return allSales;
 }
 
 window.setFilter = function(btn, f) {
+  if (!hasPermiso('verHistorialCompleto') && f !== 'today') {
+    toast('⛔ No tienes permiso para ver historial completo');
+    return;
+  }
   histFilter = f;
   document.querySelectorAll('.fb').forEach(b => b.classList.toggle('active',b.dataset.f===f));
   renderHistory();
 };
 
 window.exportCSV = function() {
+  if (!hasPermiso('exportarCSV')) { toast('⛔ No tienes permiso para exportar'); return; }
   const sales = filteredSales(); if (!sales.length) { toast('Sin ventas para exportar'); return; }
   const h = 'Vehículo,Tipo,Minutos,Precio,Pago,Empleado,Fecha,Hora';
   const rows = sales.map(s => {
@@ -671,10 +997,7 @@ window.resetDay = async function() {
     snap.docs.forEach(d => batch.delete(d.ref));
     await batch.commit();
     toast('🔄 Datos del día borrados');
-  } catch(e) {
-    console.error('Error reseteando día:', e);
-    toast('❌ Error al resetear.');
-  }
+  } catch(e) { toast('❌ Error al resetear.'); }
 };
 
 // ══════════════════════════════════════════
@@ -684,7 +1007,7 @@ window.openM = function(id) { document.getElementById(id).style.display = 'flex'
 window.closeM = function(id) { document.getElementById(id).style.display = 'none'; };
 
 document.addEventListener('click', e => {
-  ['mRent','mVeh','mTimeUp','mLogout','mUser'].forEach(id => {
+  ['mRent','mVeh','mTimeUp','mLogout','mUser','mEditPago','mCancelViaje'].forEach(id => {
     const el = document.getElementById(id); if (el && e.target === el) closeM(id);
   });
 });

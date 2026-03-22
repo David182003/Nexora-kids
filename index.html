@@ -68,10 +68,9 @@
         </div>
       </div>
     </header>
-
     <div class="tabs" id="tabsBar"></div>
-
     <main class="main">
+
       <!-- HOME -->
       <div class="view active" id="view-home">
         <div id="roleBanner" class="role-banner" style="display:none"></div>
@@ -101,7 +100,7 @@
         <div class="filter-row">
           <button class="fb active" data-f="today" onclick="setFilter(this,'today')">Hoy</button>
           <button class="fb" id="fbWeek" data-f="week" onclick="setFilter(this,'week')">Semana</button>
-          <button class="fb" id="fbAll" data-f="all" onclick="setFilter(this,'all')">Todo</button>
+          <button class="fb" id="fbAll"  data-f="all"  onclick="setFilter(this,'all')">Todo</button>
         </div>
         <div class="sale-list" id="saleList"></div>
         <div class="empty" id="emptySales" style="display:none"><span class="empty-ico">📋</span>Sin ventas aún.</div>
@@ -122,6 +121,11 @@
         </div>
         <div class="sec" style="margin-top:10px"><h2 class="sec-title">Uso por vehículo</h2></div>
         <div class="usage-wrap" id="usageWrap"></div>
+      </div>
+
+      <!-- TRAMPOLÍN -->
+      <div class="view" id="view-trampoline">
+        <div class="empty" style="padding:50px 20px"><span class="empty-ico">🦘</span><p>Cargando...</p></div>
       </div>
 
       <!-- ADMIN VEHICLES -->
@@ -154,6 +158,15 @@
             <div id="apEmpList"></div>
             <div class="ap-action"><button class="cta" style="margin-bottom:0" onclick="openAddUserModal()">+ Agregar Empleado</button></div>
           </div>
+          <!-- CONFIG TRAMPOLÍN -->
+          <div class="ap-sec">
+            <div class="ap-sec-head"><span class="ap-sec-ico">🦘</span><span class="ap-sec-title">Precios del Trampolín</span></div>
+            <div id="apTrampolinConfig"></div>
+            <div class="ap-action" style="display:flex;gap:8px">
+              <button class="cta" style="margin-bottom:0;flex:1" onclick="addPaquete()">+ Paquete</button>
+              <button class="cta" style="margin-bottom:0;flex:2;background:linear-gradient(135deg,#10B981,#059669)" onclick="saveTrampolineConfig()">💾 Guardar precios</button>
+            </div>
+          </div>
           <div class="ap-sec">
             <div class="ap-sec-head"><span class="ap-sec-ico">⚙️</span><span class="ap-sec-title">Acciones rápidas</span></div>
             <div class="ap-row" onclick="exportCSV()"><span class="ap-row-ico">📁</span><div class="ap-row-info"><div class="ap-row-name">Exportar ventas CSV</div><div class="ap-row-sub">Descargar historial</div></div><span style="color:var(--tx2)">›</span></div>
@@ -161,10 +174,11 @@
           </div>
         </div>
       </div>
+
     </main>
   </div>
 
-  <!-- MODAL ALQUILAR -->
+  <!-- ══ MODALES VEHÍCULOS ══ -->
   <div class="overlay" id="mRent" style="display:none">
     <div class="sheet">
       <div class="m-pill"></div>
@@ -198,7 +212,6 @@
     </div>
   </div>
 
-  <!-- MODAL VEHÍCULO -->
   <div class="overlay" id="mVeh" style="display:none">
     <div class="sheet">
       <div class="m-pill"></div>
@@ -219,7 +232,6 @@
     </div>
   </div>
 
-  <!-- MODAL TIEMPO TERMINADO -->
   <div class="overlay" id="mTimeUp" style="display:none">
     <div class="sheet sheet--alert">
       <span class="alert-ico">⏰</span>
@@ -230,7 +242,6 @@
     </div>
   </div>
 
-  <!-- MODAL CERRAR SESIÓN -->
   <div class="overlay" id="mLogout" style="display:none">
     <div class="sheet">
       <div class="m-pill"></div>
@@ -244,7 +255,6 @@
     </div>
   </div>
 
-  <!-- MODAL USUARIO + PERMISOS -->
   <div class="overlay" id="mUser" style="display:none">
     <div class="sheet">
       <div class="m-pill"></div>
@@ -260,49 +270,30 @@
             <button class="topt" id="rAdm" onclick="selURole('admin')">👑 Admin<small>Acceso total</small></button>
           </div>
         </div>
-
-        <!-- SECCIÓN DE PERMISOS -->
         <div id="permsSection" class="perms-section">
           <div class="perms-header">
             <span class="perms-header-ico">🔑</span>
-            <div>
-              <div class="perms-header-title">Permisos del empleado</div>
-              <div class="perms-header-sub">Activa solo las funciones que necesita</div>
-            </div>
+            <div><div class="perms-header-title">Permisos del empleado</div><div class="perms-header-sub">Activa solo las funciones que necesita</div></div>
           </div>
           <div id="permsContainer"></div>
         </div>
-
         <button class="cta" onclick="saveUser()">💾 Guardar</button>
         <button class="danger" id="btnDelUser" style="display:none" onclick="deleteUser()">🗑️ Eliminar Usuario</button>
       </div>
     </div>
   </div>
 
-  <!-- MODAL EDITAR MÉTODO DE PAGO -->
   <div class="overlay" id="mEditPago" style="display:none" data-selected-pay="yape">
     <div class="sheet">
       <div class="m-pill"></div>
-      <div class="m-head">
-        <span class="m-title">✏️ Editar Pago</span>
-        <button class="m-close" onclick="closeM('mEditPago')">✕</button>
-      </div>
+      <div class="m-head"><span class="m-title">✏️ Editar Pago</span><button class="m-close" onclick="closeM('mEditPago')">✕</button></div>
       <div class="m-body">
-        <div class="edit-pay-info">
-          <span class="edit-pay-ico">💳</span>
-          <p class="edit-pay-desc">Selecciona el método de pago correcto para esta venta</p>
-        </div>
+        <div class="edit-pay-info"><span class="edit-pay-ico">💳</span><p class="edit-pay-desc">Selecciona el método de pago correcto</p></div>
         <div class="field">
           <label class="flabel">Método de pago</label>
           <div class="pay-opts">
-            <button class="popt active" id="editPayYape" onclick="selEditPay('yape')">
-              <span style="font-size:22px;display:block;margin-bottom:5px">💜</span>
-              Yape
-            </button>
-            <button class="popt" id="editPayCash" onclick="selEditPay('cash')">
-              <span style="font-size:22px;display:block;margin-bottom:5px">💵</span>
-              Efectivo
-            </button>
+            <button class="popt active" id="editPayYape" onclick="selEditPay('yape')"><span style="font-size:22px;display:block;margin-bottom:5px">💜</span>Yape</button>
+            <button class="popt" id="editPayCash" onclick="selEditPay('cash')"><span style="font-size:22px;display:block;margin-bottom:5px">💵</span>Efectivo</button>
           </div>
         </div>
         <button class="cta" onclick="confirmEditPago()">✅ Confirmar cambio</button>
@@ -311,22 +302,15 @@
     </div>
   </div>
 
-  <!-- MODAL CANCELAR VIAJE -->
   <div class="overlay" id="mCancelViaje" style="display:none">
     <div class="sheet sheet--cancel">
       <div class="m-pill"></div>
       <div class="cancel-body">
-        <div class="cancel-ico-wrap">
-          <span class="cancel-veh-emoji" id="cancelVehEmoji">🚗</span>
-          <span class="cancel-badge">🚫</span>
-        </div>
+        <div class="cancel-ico-wrap"><span class="cancel-veh-emoji" id="cancelVehEmoji">🚗</span><span class="cancel-badge">🚫</span></div>
         <h2 class="cancel-title">¿Cancelar este viaje?</h2>
-        <p class="cancel-subtitle">El cliente se desanimó. El vehículo quedará libre y <strong>la venta no se contará</strong>.</p>
+        <p class="cancel-subtitle">El vehículo quedará libre y <strong>la venta no se contará</strong>.</p>
         <div class="cancel-card">
-          <div class="cancel-card-header">
-            <span id="cancelVehName" class="cancel-veh-name">Vehículo</span>
-            <span class="cancel-chip">Se eliminará</span>
-          </div>
+          <div class="cancel-card-header"><span id="cancelVehName" class="cancel-veh-name">Vehículo</span><span class="cancel-chip">Se eliminará</span></div>
           <div id="cancelVentaInfo" class="cancel-venta-info"></div>
         </div>
         <input type="hidden" id="cancelVentaId">
@@ -336,9 +320,59 @@
     </div>
   </div>
 
-  <div class="toast" id="toast"></div>
+  <!-- ══ MODAL ASIGNAR NIÑO A TRAMPOLÍN ══ -->
+  <div class="overlay" id="mTrRent" style="display:none">
+    <div class="sheet">
+      <div class="m-pill"></div>
+      <div class="m-head">
+        <span class="m-title" id="mTrRentTitle">🦘 Asignar niño</span>
+        <button class="m-close" onclick="closeM('mTrRent')">✕</button>
+      </div>
+      <div class="m-body">
+        <div class="v-preview" id="mTrRentEmoji">🦘</div>
+        <div class="field">
+          <label class="flabel">👦 Nombre del niño</label>
+          <input class="finput" id="trKidName" type="text" placeholder="ej: Lucía, Mateo...">
+        </div>
+        <div class="field">
+          <label class="flabel">⏱ Selecciona el paquete</label>
+          <div class="kpaq-grid" id="trPaquetesGrid"></div>
+          <div class="kid-time-display" id="trMinDisplay">20 min</div>
+        </div>
+        <div class="kid-price-banner">
+          <span class="kid-pb-label">Total a cobrar</span>
+          <span class="kid-pb-amount" id="trPriceDisplay">S/10</span>
+        </div>
+        <div class="field">
+          <label class="flabel">💳 Método de pago</label>
+          <div class="pay-opts">
+            <button class="popt active" id="trPayYape" onclick="selTrPay('yape')"><span style="font-size:17px;display:block;margin-bottom:3px">💜</span>Yape</button>
+            <button class="popt" id="trPayCash"  onclick="selTrPay('cash')"><span style="font-size:17px;display:block;margin-bottom:3px">💵</span>Efectivo</button>
+          </div>
+        </div>
+        <button class="cta" style="background:linear-gradient(135deg,#10B981,#059669)" onclick="confirmTrRent()">🦘 ¡A saltar!</button>
+      </div>
+    </div>
+  </div>
 
-  <!-- MODAL CELEBRACIÓN DE NUEVO PERMISO -->
+  <!-- ══ MODAL EDITAR / AGREGAR SLOT TRAMPOLÍN (solo admin) ══ -->
+  <div class="overlay" id="mTrSlotEdit" style="display:none">
+    <div class="sheet">
+      <div class="m-pill"></div>
+      <div class="m-head">
+        <span class="m-title" id="mTrSlotTitle">✏️ Editar Trampolín</span>
+        <button class="m-close" onclick="closeM('mTrSlotEdit')">✕</button>
+      </div>
+      <div class="m-body">
+        <div class="field"><label class="flabel">Nombre</label><input class="finput" id="trSlotName" type="text" placeholder="ej: Trampolín Grande"></div>
+        <div class="field"><label class="flabel">Emoji</label><div class="emoji-grid" id="trEmojiGrid"></div></div>
+        <button class="cta" onclick="saveTrSlot()">💾 Guardar</button>
+        <button class="danger" id="btnDelTrSlot" style="display:none" onclick="deleteTrSlot()">🗑️ Eliminar Trampolín</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ MODAL CELEBRACIÓN ══ -->
   <div class="overlay" id="mPermCel" style="display:none">
     <div class="sheet sheet--cel">
       <canvas id="confettiCanvas" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;display:none;border-radius:28px 28px 0 0"></canvas>
@@ -354,7 +388,32 @@
     </div>
   </div>
 
-  <!-- Firebase SDK (modular v10) -->
+  <!-- ══ MODAL CANCELAR TRAMPOLÍN ══ -->
+  <div class="overlay" id="mCancelTr" style="display:none">
+    <div class="sheet sheet--cancel">
+      <div class="m-pill"></div>
+      <div class="cancel-body">
+        <div class="cancel-ico-wrap">
+          <span class="cancel-veh-emoji" id="cancelTrEmoji">🦘</span>
+          <span class="cancel-badge">🚫</span>
+        </div>
+        <h2 class="cancel-title">¿Cancelar este turno?</h2>
+        <p class="cancel-subtitle">El niño se fue. El trampolín quedará libre y <strong>la venta no se contará</strong>.</p>
+        <div class="cancel-card">
+          <div class="cancel-card-header">
+            <span id="cancelTrName" class="cancel-veh-name">Trampolín</span>
+            <span class="cancel-chip">Se eliminará</span>
+          </div>
+          <div id="cancelTrInfo" class="cancel-venta-info"></div>
+        </div>
+        <input type="hidden" id="cancelTrSlotId">
+        <button class="cta-cancel" onclick="confirmCancelTrSlot()">🚫 Sí, cancelar turno</button>
+        <button class="sec-btn" style="margin-top:0" onclick="closeM('mCancelTr')">Volver</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
   <script type="module" src="scripts/app.js"></script>
 </body>
 </html>

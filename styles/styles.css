@@ -14,8 +14,6 @@ html,body{height:100%;overflow:hidden;background:var(--bg)}
 body{font-family:'Plus Jakarta Sans',sans-serif;color:var(--tx);-webkit-font-smoothing:antialiased;overscroll-behavior:none;user-select:none}
 button{font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;border:none}
 input{font-family:'Plus Jakarta Sans',sans-serif}
-
-/* ── SPLASH ── */
 #splash{position:fixed;inset:0;z-index:9999;background:linear-gradient(145deg,#4C1D95,#7C3AED 55%,#A78BFA);display:flex;align-items:center;justify-content:center;overflow:hidden;transition:opacity .5s,transform .5s}
 #splash.out{opacity:0;transform:scale(1.04);pointer-events:none}
 .sp-in{text-align:center;position:relative;z-index:2}
@@ -25,8 +23,6 @@ input{font-family:'Plus Jakarta Sans',sans-serif}
 .sp-track{width:140px;height:3px;background:rgba(255,255,255,.25);border-radius:2px;margin:0 auto;overflow:hidden;animation:fadeUp .5s .5s ease both}
 .sp-bar{height:100%;background:#fff;border-radius:2px;animation:loadBar 1.6s .6s ease forwards;width:0}
 .bubble{position:absolute;animation:floatUp 3s ease infinite;opacity:.35;pointer-events:none}
-
-/* ── LOGIN ── */
 #loginScreen{position:fixed;inset:0;z-index:900;background:linear-gradient(160deg,#4C1D95 0%,#7C3AED 50%,#6D28D9 100%);display:flex;align-items:center;justify-content:center;padding:20px;overflow:hidden}
 #loginScreen.hidden{display:none}
 .lb-bubbles{position:absolute;inset:0;pointer-events:none;overflow:hidden}
@@ -56,11 +52,7 @@ input{font-family:'Plus Jakarta Sans',sans-serif}
 .lbadge.a{background:linear-gradient(135deg,#FEF3C7,#FDE68A);color:#92400E}
 .lbadge.e{background:var(--vs);color:var(--v)}
 .lcred{font-size:12px;color:var(--tx2);font-family:monospace;background:var(--sf);padding:3px 8px;border-radius:6px;border:1px solid var(--bd)}
-
-/* ── APP ── */
 .app{position:fixed;inset:0;display:flex;flex-direction:column;max-width:480px;margin:0 auto;background:var(--bg)}
-
-/* ── TOPBAR ── */
 .topbar{height:var(--th);background:var(--sf);border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;padding:0 14px;flex-shrink:0;box-shadow:0 1px 8px rgba(124,58,237,.08)}
 .tb-brand{display:flex;align-items:center;gap:7px}
 .tb-logo{font-size:19px}
@@ -77,23 +69,15 @@ input{font-family:'Plus Jakarta Sans',sans-serif}
 .tb-rbadge.employee{background:var(--vs);color:var(--v)}
 .tb-addbtn{width:34px;height:34px;background:var(--v);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;transition:transform .15s}
 .tb-addbtn:active{transform:scale(.9)}
-
-/* ── TABS ── */
 .tabs{display:flex;padding:8px 12px 0;gap:5px;flex-shrink:0;overflow-x:auto;scrollbar-width:none}
 .tabs::-webkit-scrollbar{display:none}
 .tab-btn{flex-shrink:0;padding:8px 10px;border:2px solid var(--bd);background:var(--sf2);border-radius:12px;font-size:11px;font-weight:700;color:var(--tx2);transition:all .2s;white-space:nowrap}
 .tab-btn.active{border-color:var(--v);background:var(--vs);color:var(--v)}
-
-/* ── MAIN ── */
 .main{flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:20px;-webkit-overflow-scrolling:touch}
 .view{display:none;animation:fadeIn .2s ease}.view.active{display:block}
-
-/* ── ROLE BANNER ── */
 .role-banner{margin:10px 14px 0;padding:10px 13px;border-radius:12px;display:flex;align-items:center;gap:9px;font-size:12px;font-weight:700}
 .role-banner.admin{background:linear-gradient(135deg,#FEF3C7,#FDE68A);color:#92400E;border:1.5px solid #FCD34D}
 .role-banner.employee{background:var(--vs);color:var(--v);border:1.5px solid #C4B5FD}
-
-/* ── DASHBOARD ── */
 .dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px}
 .dc{border-radius:var(--r);padding:14px;border:1.5px solid transparent;animation:popIn .4s ease both}
 .dc:nth-child(2){animation-delay:.05s}.dc:nth-child(3){animation-delay:.1s}.dc:nth-child(4){animation-delay:.15s}
@@ -102,14 +86,10 @@ input{font-family:'Plus Jakarta Sans',sans-serif}
 .dc-icon{font-size:20px;margin-bottom:5px}
 .dc-val{font-family:'Fredoka One',cursive;font-size:26px;line-height:1;color:var(--tx)}
 .dc-lbl{font-size:10px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.4px;margin-top:3px}
-
-/* ── SECTIONS ── */
 .sec{padding:12px 14px 4px}
 .sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:11px}
 .sec-title{font-size:14px;font-weight:800}
 .sec-badge{background:var(--v);color:#fff;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px}
-
-/* ── VEHICLE CARDS ── */
 .vg{display:grid;grid-template-columns:1fr 1fr;gap:11px}
 .vc{background:var(--sf);border-radius:var(--r);border:2px solid var(--bd);overflow:hidden;cursor:pointer;transition:transform .2s;animation:popIn .35s ease both}
 .vc:active{transform:scale(.96)}
@@ -135,31 +115,29 @@ input{font-family:'Plus Jakarta Sans',sans-serif}
 .vbtn-p{background:var(--v);color:#fff}.vbtn-t{background:var(--tl);color:#fff}
 .vbtn-a{background:var(--amb);color:#fff}.vbtn-r{background:var(--rd);color:#fff}
 .vbtn-e{background:var(--sf2);color:var(--tx2);border:1.5px solid var(--bd)!important}
-
-/* ── HISTORY ── */
+.vbtn-cancel{background:#FFF1F2;color:var(--rd);border:1.5px solid #FECDD3!important;flex:0 0 auto;padding:8px 10px}
+.vbtn-cancel:active{transform:scale(.9)}
 .filter-row{display:flex;gap:7px;padding:4px 14px 9px}
 .fb{padding:7px 13px;border:2px solid var(--bd);background:var(--sf2);border-radius:20px;font-size:12px;font-weight:700;color:var(--tx2);transition:all .15s}
 .fb.active{border-color:var(--v);background:var(--v);color:#fff}
 .sale-list{padding:0 14px}
-.si{background:var(--sf);border:1.5px solid var(--bd);border-radius:var(--rsm);padding:10px 13px;margin-bottom:8px;display:flex;align-items:center;gap:10px}
+.si{background:var(--sf);border:1.5px solid var(--bd);border-radius:var(--rsm);padding:10px 13px;margin-bottom:8px;display:flex;align-items:center;gap:10px;transition:opacity .25s,transform .25s}
 .si-emoji{font-size:27px;flex-shrink:0}.si-info{flex:1;min-width:0}
 .si-name{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .si-det{font-size:11px;color:var(--tx2);margin-top:2px}.si-right{text-align:right;flex-shrink:0}
 .si-price{font-family:'Fredoka One',cursive;font-size:19px;color:var(--v)}
-.si-pay-row{display:flex;align-items:center;justify-content:flex-end;gap:5px;margin-top:2px}
+.si-pay-row{display:flex;align-items:center;justify-content:flex-end;gap:4px;margin-top:2px}
 .si-pay{font-size:10px;color:var(--tx2)}
-
-/* ── EDIT PAY BUTTON ── */
+/* ── BOTONES EDITAR Y ELIMINAR EN VENTAS ── */
 .edit-pay-btn{background:none;border:none;font-size:12px;cursor:pointer;padding:2px 4px;border-radius:6px;color:var(--v);transition:background .15s;line-height:1}
 .edit-pay-btn:hover{background:var(--vs)}
 .edit-pay-btn:active{transform:scale(.9)}
-
-/* ── EDIT PAY MODAL ── */
+.sale-del-btn{background:none;border:none;font-size:13px;cursor:pointer;padding:2px 4px;border-radius:6px;color:var(--rd);opacity:.7;transition:opacity .15s,transform .15s;line-height:1}
+.sale-del-btn:hover{opacity:1;background:var(--rds)}
+.sale-del-btn:active{transform:scale(.88)}
 .edit-pay-info{text-align:center;padding:10px 0 20px;display:flex;flex-direction:column;align-items:center;gap:8px}
 .edit-pay-ico{font-size:44px}
 .edit-pay-desc{font-size:13px;color:var(--tx2);line-height:1.5;max-width:240px}
-
-/* ── STATS ── */
 .stat-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px}
 .scard{background:var(--sf);border:1.5px solid var(--bd);border-radius:var(--r);padding:16px 13px;text-align:center}
 .scard-icon{font-size:26px;margin-bottom:7px}.scard-val{font-family:'Fredoka One',cursive;font-size:27px;color:var(--v)}
@@ -173,8 +151,6 @@ input{font-family:'Plus Jakarta Sans',sans-serif}
 .u-label{display:flex;justify-content:space-between;font-size:12px;font-weight:700;margin-bottom:4px}
 .u-track{height:9px;background:var(--bd);border-radius:5px;overflow:hidden}
 .u-fill{height:100%;background:linear-gradient(90deg,var(--v),#9333EA);border-radius:5px;transition:width .6s ease}
-
-/* ── ADMIN VEHICLES ── */
 .admin-list{padding:0 14px}
 .av-item{background:var(--sf);border:1.5px solid var(--bd);border-radius:var(--rsm);padding:13px 14px;display:flex;align-items:center;gap:12px;margin-bottom:9px;cursor:pointer;transition:transform .15s}
 .av-item:active{transform:scale(.98)}
@@ -185,8 +161,6 @@ input{font-family:'Plus Jakarta Sans',sans-serif}
 .av-stat.in-use{background:var(--ambs);color:#92400E}
 .av-stat.time-over{background:var(--rds);color:var(--rd)}
 .av-arrow{color:var(--tx2);font-size:18px}
-
-/* ── ADMIN PANEL ── */
 .admin-panel{padding:12px}
 .ap-sec{background:var(--sf);border:1.5px solid var(--bd);border-radius:var(--r);margin-bottom:12px;overflow:hidden}
 .ap-sec-head{padding:13px 15px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:9px}
@@ -198,18 +172,12 @@ input{font-family:'Plus Jakarta Sans',sans-serif}
 .ap-row-name{font-size:13px;font-weight:700}.ap-row-sub{font-size:11px;color:var(--tx2);margin-top:1px}
 .ap-row-val{font-family:'Fredoka One',cursive;font-size:17px;color:var(--v);text-align:right}
 .ap-action{padding:11px 15px}
-
-/* ── PERMISSION COUNT BADGE ── */
 .perm-count-badge{display:inline-block;background:var(--vs);color:var(--v);font-size:10px;font-weight:800;padding:1px 7px;border-radius:10px;border:1px solid #C4B5FD}
-
-/* ── PERMISSIONS SECTION (in user modal) ── */
 .perms-section{background:var(--sf2);border:1.5px solid var(--bd);border-radius:16px;margin-bottom:16px;overflow:hidden}
 .perms-header{display:flex;align-items:center;gap:11px;padding:13px 14px 11px;border-bottom:1px solid var(--bd)}
 .perms-header-ico{font-size:22px;flex-shrink:0}
 .perms-header-title{font-size:13px;font-weight:800;color:var(--tx)}
 .perms-header-sub{font-size:11px;color:var(--tx2);margin-top:2px}
-
-/* ── PERMISSION ITEM ── */
 .perm-item{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--bd);cursor:pointer;transition:background .15s;gap:12px}
 .perm-item:last-child{border-bottom:none}
 .perm-item:active{background:var(--bd)}
@@ -219,18 +187,12 @@ input{font-family:'Plus Jakarta Sans',sans-serif}
 .perm-info{flex:1;min-width:0}
 .perm-label{font-size:13px;font-weight:700;color:var(--tx)}
 .perm-desc{font-size:11px;color:var(--tx2);margin-top:2px;line-height:1.4}
-
-/* ── TOGGLE SWITCH ── */
 .perm-toggle{width:44px;height:24px;border-radius:12px;background:#D1D5DB;position:relative;transition:background .25s;flex-shrink:0}
 .perm-toggle.on{background:var(--v)}
 .perm-knob{position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;top:3px;left:3px;transition:transform .25s;box-shadow:0 1px 4px rgba(0,0,0,.2)}
 .perm-toggle.on .perm-knob{transform:translateX(20px)}
-
-/* ── EMPTY ── */
 .empty{text-align:center;padding:30px 20px;color:var(--tx2);font-size:13px;line-height:1.8}
 .empty-ico{font-size:40px;display:block;margin-bottom:9px}
-
-/* ── MODALS ── */
 .overlay{position:fixed;inset:0;z-index:500;background:rgba(30,27,75,.55);display:flex;align-items:flex-end;animation:fadeIn .2s ease}
 .sheet{background:var(--sf);border-radius:28px 28px 0 0;width:100%;max-width:480px;margin:0 auto;max-height:92vh;overflow-y:auto;animation:slideUp .3s cubic-bezier(.16,1,.3,1)}
 .sheet--alert{padding:30px 22px 34px;text-align:center;background:linear-gradient(180deg,#FFF1F2,var(--sf) 40%)}
@@ -242,14 +204,10 @@ input{font-family:'Plus Jakarta Sans',sans-serif}
 .alert-ico{font-size:64px;display:block;animation:ring .4s ease infinite alternate;margin-bottom:11px}
 .alert-title{font-family:'Fredoka One',cursive;font-size:25px;color:var(--rd);margin-bottom:8px}
 .alert-msg{font-size:14px;color:var(--tx2);line-height:1.6;margin-bottom:20px}
-
-/* ── LOGOUT MODAL ── */
 .logout-body{padding:26px 22px 30px;text-align:center}
 .logout-ico{font-size:54px;display:block;margin-bottom:11px}
 .logout-name{font-family:'Fredoka One',cursive;font-size:22px;margin-bottom:6px}
 .logout-role{font-size:13px;color:var(--tx2);margin-bottom:20px;line-height:1.5}
-
-/* ── FORM ── */
 .field{margin-bottom:15px}
 .flabel{display:block;font-size:11px;font-weight:800;color:var(--tx2);letter-spacing:.4px;margin-bottom:6px;text-transform:uppercase}
 .finput{width:100%;padding:12px 14px;border:2px solid var(--bd);border-radius:var(--rsm);font-size:15px;color:var(--tx);background:var(--sf2);outline:none;transition:border-color .2s}
@@ -284,118 +242,114 @@ input{font-family:'Plus Jakarta Sans',sans-serif}
 .link-btn{font-size:12px;font-weight:700;color:var(--v);background:none;border:none;padding:4px 7px;cursor:pointer}
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(12px);background:var(--tx);color:#fff;padding:10px 20px;border-radius:24px;font-size:13px;font-weight:600;z-index:9000;opacity:0;pointer-events:none;transition:all .3s ease;white-space:nowrap;max-width:90vw;text-align:center}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-
-.vbtn-cancel{background:#FFF1F2;color:var(--rd);border:1.5px solid #FECDD3!important;flex:0 0 auto;padding:8px 10px;}
-.vbtn-cancel:active{transform:scale(.9)}
-
-/* ── CANCEL TRIP MODAL ── */
 .sheet--cancel{background:var(--sf)}
 .cancel-body{padding:10px 22px 30px;display:flex;flex-direction:column;align-items:center;text-align:center}
 .cancel-ico-wrap{position:relative;margin-bottom:14px;display:inline-block}
 .cancel-veh-emoji{font-size:64px;display:block;line-height:1;filter:grayscale(.3)}
-.cancel-badge{
-  position:absolute;bottom:-4px;right:-10px;
-  font-size:26px;
-  background:var(--sf);border-radius:50%;
-  width:36px;height:36px;display:flex;align-items:center;justify-content:center;
-  box-shadow:0 2px 8px rgba(0,0,0,.12);
-}
+.cancel-badge{position:absolute;bottom:-4px;right:-10px;font-size:26px;background:var(--sf);border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.12)}
 .cancel-title{font-family:'Fredoka One',cursive;font-size:24px;color:var(--rd);margin-bottom:8px}
 .cancel-subtitle{font-size:13px;color:var(--tx2);line-height:1.55;margin-bottom:18px;max-width:290px}
-.cancel-card{
-  width:100%;background:var(--rds);border:1.5px solid #FECDD3;
-  border-radius:16px;padding:14px 16px;margin-bottom:20px;text-align:left;
-}
+.cancel-card{width:100%;background:var(--rds);border:1.5px solid #FECDD3;border-radius:16px;padding:14px 16px;margin-bottom:20px;text-align:left}
 .cancel-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:11px}
 .cancel-veh-name{font-size:15px;font-weight:800;color:var(--tx)}
-.cancel-chip{
-  font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;
-  background:var(--rd);color:#fff;padding:3px 9px;border-radius:20px;
-}
+.cancel-chip{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;background:var(--rd);color:#fff;padding:3px 9px;border-radius:20px}
 .cancel-venta-info{display:flex;flex-direction:column;gap:7px}
-.cancel-venta-row{
-  display:flex;justify-content:space-between;align-items:center;
-  font-size:13px;color:var(--tx);
-}
+.cancel-venta-row{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--tx)}
 .cancel-venta-row span{color:var(--tx2)}
 .cancel-venta-row strong{font-weight:800}
-.cta-cancel{
-  width:100%;padding:15px;
-  background:var(--rd);color:#fff;
-  border:none;border-radius:15px;
-  font-size:15px;font-weight:700;
-  font-family:'Plus Jakarta Sans',sans-serif;
-  transition:transform .15s,opacity .15s;
-  margin-bottom:9px;
-}
+.cta-cancel{width:100%;padding:15px;background:var(--rd);color:#fff;border:none;border-radius:15px;font-size:15px;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;transition:transform .15s,opacity .15s;margin-bottom:9px}
 .cta-cancel:active{transform:scale(.98);opacity:.85}
-.sheet--cel{
-  position:relative;overflow:hidden;
-  background:linear-gradient(160deg,#4C1D95 0%,#7C3AED 45%,#A855F7 75%,#EC4899 100%);
-  padding-bottom:34px;
-}
-.cel-body{
-  position:relative;z-index:2;
-  padding:6px 22px 10px;
-  display:flex;flex-direction:column;align-items:center;text-align:center;
-}
-.cel-stars{
-  font-size:28px;letter-spacing:8px;margin-bottom:2px;
-  animation:starPulse 1s ease infinite alternate;
-}
-.cel-trophy{
-  font-size:72px;line-height:1;margin-bottom:10px;
-  animation:trophyBounce .6s cubic-bezier(.36,.07,.19,.97) both;
-  filter:drop-shadow(0 4px 18px rgba(251,191,36,.5));
-}
-.cel-title{
-  font-family:'Fredoka One',cursive;font-size:26px;color:#fff;
-  margin-bottom:7px;text-shadow:0 2px 12px rgba(0,0,0,.2);
-  animation:fadeUp .4s .15s ease both;
-}
-.cel-sub{
-  font-size:13px;color:rgba(255,255,255,.75);margin-bottom:18px;
-  animation:fadeUp .4s .25s ease both;
-}
-.perm-cel-list{
-  width:100%;display:flex;flex-direction:column;gap:10px;margin-bottom:22px;
-  animation:fadeUp .4s .35s ease both;
-}
-.perm-cel-item{
-  background:rgba(255,255,255,.14);backdrop-filter:blur(8px);
-  border:1.5px solid rgba(255,255,255,.22);border-radius:16px;
-  padding:14px 16px;display:flex;align-items:center;gap:13px;text-align:left;
-}
-.perm-cel-icon-wrap{
-  font-size:30px;flex-shrink:0;
-  width:52px;height:52px;background:rgba(255,255,255,.18);
-  border-radius:14px;display:flex;align-items:center;justify-content:center;
-}
+.sheet--cel{position:relative;overflow:hidden;background:linear-gradient(160deg,#4C1D95 0%,#7C3AED 45%,#A855F7 75%,#EC4899 100%);padding-bottom:34px}
+.cel-body{position:relative;z-index:2;padding:6px 22px 10px;display:flex;flex-direction:column;align-items:center;text-align:center}
+.cel-stars{font-size:28px;letter-spacing:8px;margin-bottom:2px;animation:starPulse 1s ease infinite alternate}
+.cel-trophy{font-size:72px;line-height:1;margin-bottom:10px;animation:trophyBounce .6s cubic-bezier(.36,.07,.19,.97) both;filter:drop-shadow(0 4px 18px rgba(251,191,36,.5))}
+.cel-title{font-family:'Fredoka One',cursive;font-size:26px;color:#fff;margin-bottom:7px;animation:fadeUp .4s .15s ease both}
+.cel-sub{font-size:13px;color:rgba(255,255,255,.75);margin-bottom:18px;animation:fadeUp .4s .25s ease both}
+.perm-cel-list{width:100%;display:flex;flex-direction:column;gap:10px;margin-bottom:22px;animation:fadeUp .4s .35s ease both}
+.perm-cel-item{background:rgba(255,255,255,.14);backdrop-filter:blur(8px);border:1.5px solid rgba(255,255,255,.22);border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:13px;text-align:left}
+.perm-cel-icon-wrap{font-size:30px;flex-shrink:0;width:52px;height:52px;background:rgba(255,255,255,.18);border-radius:14px;display:flex;align-items:center;justify-content:center}
 .perm-cel-info{flex:1}
 .perm-cel-label{font-size:15px;font-weight:800;color:#fff;margin-bottom:4px}
 .perm-cel-desc{font-size:12px;color:rgba(255,255,255,.72);line-height:1.45}
-.cel-btn{
-  width:100%;padding:16px;
-  background:#fff;color:var(--v);
-  border:none;border-radius:16px;
-  font-size:15px;font-weight:800;
-  font-family:'Plus Jakarta Sans',sans-serif;
-  transition:transform .15s,box-shadow .15s;
-  box-shadow:0 4px 20px rgba(0,0,0,.2);
-  animation:fadeUp .4s .45s ease both;
-}
+.cel-btn{width:100%;padding:16px;background:#fff;color:var(--v);border:none;border-radius:16px;font-size:15px;font-weight:800;font-family:'Plus Jakarta Sans',sans-serif;transition:transform .15s,box-shadow .15s;box-shadow:0 4px 20px rgba(0,0,0,.2);animation:fadeUp .4s .45s ease both}
 .cel-btn:active{transform:scale(.97)}
 
-@keyframes trophyBounce{
-  0%{transform:scale(0) rotate(-15deg);opacity:0}
-  60%{transform:scale(1.2) rotate(5deg)}
-  80%{transform:scale(.95) rotate(-2deg)}
-  100%{transform:scale(1) rotate(0);opacity:1}
-}
-@keyframes starPulse{
-  from{transform:scale(.9);opacity:.7}
-  to{transform:scale(1.1);opacity:1}
-}
+/* ══════════════════════════════════════════
+   TRAMPOLÍN
+   ══════════════════════════════════════════ */
+.tr-header{padding:14px 14px 10px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.tr-stats{display:flex;gap:10px;flex:1}
+.tr-stat{flex:1;border-radius:var(--r);padding:12px 11px;border:1.5px solid transparent;text-align:center}
+.tr-stat--jump{background:#F0FDF4;border-color:#A7F3D0}
+.tr-stat--money{background:var(--ambs);border-color:#FDE68A}
+.tr-stat-ico{font-size:18px;margin-bottom:3px}
+.tr-stat-val{font-family:'Fredoka One',cursive;font-size:24px;color:var(--tx);line-height:1}
+.tr-stat-lbl{font-size:9px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.4px;margin-top:3px}
+.tr-add-btn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:12px 16px;background:linear-gradient(135deg,#10B981,#059669);color:#fff;border-radius:var(--r);font-size:12px;font-weight:700;border:none;transition:transform .15s,opacity .15s;flex-shrink:0;min-width:80px}
+.tr-add-btn:active{transform:scale(.95);opacity:.9}
+.tr-add-ico{font-size:22px;line-height:1}
+.tr-empty{text-align:center;padding:40px 20px 30px}
+.tr-empty-bounce{font-size:64px;display:block;margin-bottom:12px;animation:trBounce .6s ease infinite alternate}
+.tr-empty-title{font-family:'Fredoka One',cursive;font-size:22px;color:var(--tx);margin-bottom:6px}
+.tr-empty-sub{font-size:13px;color:var(--tx2);margin-bottom:20px;line-height:1.5}
+.tr-empty-cta{max-width:220px;margin:0 auto !important}
+.tr-section-head{display:flex;align-items:center;justify-content:space-between;padding:4px 14px 10px}
+.tr-section-title{font-size:14px;font-weight:800}
+.tr-count-badge{background:#10B981;color:#fff;font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px}
+.tr-kids-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px;padding:0 14px 16px}
+.tr-kid-card{background:var(--sf);border:2px solid #A7F3D0;border-radius:var(--r);overflow:hidden;animation:popIn .35s ease both;transition:border-color .3s}
+.tr-kid-card.tr-kid-urgent{border-color:#FDE68A;animation:trPulseAmber 1.2s infinite}
+.tr-kid-card.tr-kid-over{border-color:var(--rd);animation:pulseRed 1.2s infinite}
+.tr-kid-top{display:flex;align-items:center;gap:9px;padding:12px 11px 8px;background:linear-gradient(135deg,#ECFDF5,#D1FAE5)}
+.tr-kid-card.tr-kid-urgent .tr-kid-top{background:linear-gradient(135deg,#FFFBEB,#FEF3C7)}
+.tr-kid-card.tr-kid-over .tr-kid-top{background:linear-gradient(135deg,#FFF1F2,#FFE4E6)}
+.tr-kid-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.tr-kid-initials{font-size:13px;font-weight:800}
+.tr-kid-info{flex:1;min-width:0}
+.tr-kid-name{font-size:12px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tr-kid-meta{font-size:10px;color:var(--tx2);font-weight:600;margin-top:2px}
+.tr-kid-price{font-family:'Fredoka One',cursive;font-size:17px;color:var(--v);flex-shrink:0}
+.tr-timer-wrap{display:flex;align-items:center;justify-content:center;gap:6px;padding:6px 10px 4px;color:#10B981}
+.tr-timer-wrap.tr-timer-urgent{color:var(--amb);animation:blink .6s infinite alternate}
+.tr-timer-wrap.tr-timer-over{color:var(--rd);animation:blink .4s infinite alternate}
+.tr-timer-ico{font-size:16px}
+.tr-timer-text{font-family:'Fredoka One',cursive;font-size:24px}
+.tr-kid-actions{display:flex;gap:5px;padding:0 9px 10px}
+.tr-btn{flex:1;padding:8px 3px;border-radius:9px;font-size:11px;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;border:none;transition:transform .15s;cursor:pointer}
+.tr-btn:active{transform:scale(.94)}
+.tr-btn-extend{background:var(--amb);color:#fff}
+.tr-btn-finish{background:var(--gr);color:#fff}
+.tr-btn-cancel{background:#FFF1F2;color:var(--rd);border:1.5px solid #FECDD3 !important;flex:0 0 auto;padding:8px 10px}
+
+/* ── MODAL AGREGAR NIÑO ── */
+.kid-hero{background:linear-gradient(135deg,#ECFDF5,#D1FAE5);border-radius:var(--r);padding:18px;text-align:center;font-size:60px;margin-bottom:14px;line-height:1;animation:trBounce .6s ease infinite alternate}
+/* Grid de paquetes */
+.kpaq-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px;margin-bottom:10px}
+.kpaq-btn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 8px;border:2px solid var(--bd);background:var(--sf2);border-radius:var(--rsm);font-family:'Plus Jakarta Sans',sans-serif;transition:all .15s;cursor:pointer}
+.kpaq-btn.active{border-color:#10B981;background:#ECFDF5}
+.kpaq-min{font-size:13px;font-weight:800;color:var(--tx)}
+.kpaq-btn.active .kpaq-min{color:#065F46}
+.kpaq-precio{font-family:'Fredoka One',cursive;font-size:18px;color:var(--v)}
+.kpaq-btn.active .kpaq-precio{color:#10B981}
+.kid-time-display{font-size:11px;color:var(--tx2);font-weight:700;text-align:center;margin-bottom:4px}
+.kid-price-banner{background:linear-gradient(135deg,#10B981,#059669);border-radius:var(--rsm);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.kid-pb-label{font-size:13px;font-weight:700;color:rgba(255,255,255,.85)}
+.kid-pb-amount{font-family:'Fredoka One',cursive;font-size:36px;color:#fff}
+
+/* ── CONFIG TRAMPOLÍN ADMIN ── */
+.tr-cfg-row{display:flex;align-items:center;gap:10px;padding:11px 15px;border-bottom:1px solid var(--bd)}
+.tr-cfg-row:last-child{border-bottom:none}
+.tr-cfg-label-pill{font-size:10px;font-weight:800;color:var(--v);background:var(--vs);padding:3px 8px;border-radius:20px;white-space:nowrap;flex-shrink:0}
+.tr-cfg-fields{display:flex;gap:8px;flex:1}
+.tr-cfg-field{display:flex;flex-direction:column;gap:3px;flex:1}
+.tr-cfg-field-lbl{font-size:10px;font-weight:800;color:var(--tx2);text-transform:uppercase;letter-spacing:.3px}
+.tr-cfg-input{width:100%;padding:8px 10px;border:2px solid var(--bd);border-radius:10px;font-size:14px;font-weight:700;color:var(--tx);background:var(--sf2);outline:none;font-family:'Plus Jakarta Sans',sans-serif;transition:border-color .2s}
+.tr-cfg-input:focus{border-color:var(--v)}
+.tr-cfg-del-btn{background:var(--rds);border:none;color:var(--rd);width:30px;height:30px;border-radius:8px;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;transition:transform .15s}
+.tr-cfg-del-btn:active{transform:scale(.88)}
+
+@keyframes trophyBounce{0%{transform:scale(0) rotate(-15deg);opacity:0}60%{transform:scale(1.2) rotate(5deg)}80%{transform:scale(.95) rotate(-2deg)}100%{transform:scale(1) rotate(0);opacity:1}}
+@keyframes starPulse{from{transform:scale(.9);opacity:.7}to{transform:scale(1.1);opacity:1}}
 @keyframes carBounce{from{transform:translateY(0) rotate(-3deg)}to{transform:translateY(-10px) rotate(3deg)}}
 @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 @keyframes loadBar{from{width:0}to{width:100%}}
@@ -410,3 +364,17 @@ input{font-family:'Plus Jakarta Sans',sans-serif}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
 @keyframes numPop{0%{transform:scale(.7)}70%{transform:scale(1.15)}100%{transform:scale(1)}}
 @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+@keyframes trBounce{from{transform:translateY(0) scale(1)}to{transform:translateY(-12px) scale(1.08)}}
+@keyframes trPulseAmber{0%,100%{box-shadow:0 0 0 0 rgba(245,158,11,.35)}50%{box-shadow:0 0 0 10px rgba(245,158,11,0)}}
+
+/* ── Trampolín: stat disponible ── */
+.tr-stat--avail{background:var(--grs);border-color:#6EE7B7}
+/* ── 3 stats en header ── */
+.tr-header .tr-stats{gap:7px}
+.tr-header .tr-stats .tr-stat{padding:10px 8px}
+.tr-header .tr-stats .tr-stat-val{font-size:20px}
+
+/* ── Sección interna de trampolín en panel admin ── */
+.ap-tr-section{border-top:1px solid var(--bd)}
+.ap-tr-section:first-child{border-top:none}
+.ap-tr-section-head{padding:11px 15px 8px;font-size:12px;font-weight:800;color:var(--tx2);text-transform:uppercase;letter-spacing:.4px;display:flex;align-items:center;justify-content:space-between;gap:8px}

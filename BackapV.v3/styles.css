@@ -146,7 +146,18 @@ input{font-family:'Plus Jakarta Sans',sans-serif}
 .si-name{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .si-det{font-size:11px;color:var(--tx2);margin-top:2px}.si-right{text-align:right;flex-shrink:0}
 .si-price{font-family:'Fredoka One',cursive;font-size:19px;color:var(--v)}
-.si-pay{font-size:10px;color:var(--tx2);margin-top:1px}
+.si-pay-row{display:flex;align-items:center;justify-content:flex-end;gap:5px;margin-top:2px}
+.si-pay{font-size:10px;color:var(--tx2)}
+
+/* ── EDIT PAY BUTTON ── */
+.edit-pay-btn{background:none;border:none;font-size:12px;cursor:pointer;padding:2px 4px;border-radius:6px;color:var(--v);transition:background .15s;line-height:1}
+.edit-pay-btn:hover{background:var(--vs)}
+.edit-pay-btn:active{transform:scale(.9)}
+
+/* ── EDIT PAY MODAL ── */
+.edit-pay-info{text-align:center;padding:10px 0 20px;display:flex;flex-direction:column;align-items:center;gap:8px}
+.edit-pay-ico{font-size:44px}
+.edit-pay-desc{font-size:13px;color:var(--tx2);line-height:1.5;max-width:240px}
 
 /* ── STATS ── */
 .stat-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px}
@@ -187,6 +198,33 @@ input{font-family:'Plus Jakarta Sans',sans-serif}
 .ap-row-name{font-size:13px;font-weight:700}.ap-row-sub{font-size:11px;color:var(--tx2);margin-top:1px}
 .ap-row-val{font-family:'Fredoka One',cursive;font-size:17px;color:var(--v);text-align:right}
 .ap-action{padding:11px 15px}
+
+/* ── PERMISSION COUNT BADGE ── */
+.perm-count-badge{display:inline-block;background:var(--vs);color:var(--v);font-size:10px;font-weight:800;padding:1px 7px;border-radius:10px;border:1px solid #C4B5FD}
+
+/* ── PERMISSIONS SECTION (in user modal) ── */
+.perms-section{background:var(--sf2);border:1.5px solid var(--bd);border-radius:16px;margin-bottom:16px;overflow:hidden}
+.perms-header{display:flex;align-items:center;gap:11px;padding:13px 14px 11px;border-bottom:1px solid var(--bd)}
+.perms-header-ico{font-size:22px;flex-shrink:0}
+.perms-header-title{font-size:13px;font-weight:800;color:var(--tx)}
+.perms-header-sub{font-size:11px;color:var(--tx2);margin-top:2px}
+
+/* ── PERMISSION ITEM ── */
+.perm-item{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--bd);cursor:pointer;transition:background .15s;gap:12px}
+.perm-item:last-child{border-bottom:none}
+.perm-item:active{background:var(--bd)}
+.perm-item.active{background:linear-gradient(135deg,#F5F3FF,#EDE9FE)}
+.perm-left{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
+.perm-icon{font-size:20px;flex-shrink:0}
+.perm-info{flex:1;min-width:0}
+.perm-label{font-size:13px;font-weight:700;color:var(--tx)}
+.perm-desc{font-size:11px;color:var(--tx2);margin-top:2px;line-height:1.4}
+
+/* ── TOGGLE SWITCH ── */
+.perm-toggle{width:44px;height:24px;border-radius:12px;background:#D1D5DB;position:relative;transition:background .25s;flex-shrink:0}
+.perm-toggle.on{background:var(--v)}
+.perm-knob{position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;top:3px;left:3px;transition:transform .25s;box-shadow:0 1px 4px rgba(0,0,0,.2)}
+.perm-toggle.on .perm-knob{transform:translateX(20px)}
 
 /* ── EMPTY ── */
 .empty{text-align:center;padding:30px 20px;color:var(--tx2);font-size:13px;line-height:1.8}
@@ -247,7 +285,117 @@ input{font-family:'Plus Jakarta Sans',sans-serif}
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(12px);background:var(--tx);color:#fff;padding:10px 20px;border-radius:24px;font-size:13px;font-weight:600;z-index:9000;opacity:0;pointer-events:none;transition:all .3s ease;white-space:nowrap;max-width:90vw;text-align:center}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
-/* ── KEYFRAMES ── */
+.vbtn-cancel{background:#FFF1F2;color:var(--rd);border:1.5px solid #FECDD3!important;flex:0 0 auto;padding:8px 10px;}
+.vbtn-cancel:active{transform:scale(.9)}
+
+/* ── CANCEL TRIP MODAL ── */
+.sheet--cancel{background:var(--sf)}
+.cancel-body{padding:10px 22px 30px;display:flex;flex-direction:column;align-items:center;text-align:center}
+.cancel-ico-wrap{position:relative;margin-bottom:14px;display:inline-block}
+.cancel-veh-emoji{font-size:64px;display:block;line-height:1;filter:grayscale(.3)}
+.cancel-badge{
+  position:absolute;bottom:-4px;right:-10px;
+  font-size:26px;
+  background:var(--sf);border-radius:50%;
+  width:36px;height:36px;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 2px 8px rgba(0,0,0,.12);
+}
+.cancel-title{font-family:'Fredoka One',cursive;font-size:24px;color:var(--rd);margin-bottom:8px}
+.cancel-subtitle{font-size:13px;color:var(--tx2);line-height:1.55;margin-bottom:18px;max-width:290px}
+.cancel-card{
+  width:100%;background:var(--rds);border:1.5px solid #FECDD3;
+  border-radius:16px;padding:14px 16px;margin-bottom:20px;text-align:left;
+}
+.cancel-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:11px}
+.cancel-veh-name{font-size:15px;font-weight:800;color:var(--tx)}
+.cancel-chip{
+  font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;
+  background:var(--rd);color:#fff;padding:3px 9px;border-radius:20px;
+}
+.cancel-venta-info{display:flex;flex-direction:column;gap:7px}
+.cancel-venta-row{
+  display:flex;justify-content:space-between;align-items:center;
+  font-size:13px;color:var(--tx);
+}
+.cancel-venta-row span{color:var(--tx2)}
+.cancel-venta-row strong{font-weight:800}
+.cta-cancel{
+  width:100%;padding:15px;
+  background:var(--rd);color:#fff;
+  border:none;border-radius:15px;
+  font-size:15px;font-weight:700;
+  font-family:'Plus Jakarta Sans',sans-serif;
+  transition:transform .15s,opacity .15s;
+  margin-bottom:9px;
+}
+.cta-cancel:active{transform:scale(.98);opacity:.85}
+.sheet--cel{
+  position:relative;overflow:hidden;
+  background:linear-gradient(160deg,#4C1D95 0%,#7C3AED 45%,#A855F7 75%,#EC4899 100%);
+  padding-bottom:34px;
+}
+.cel-body{
+  position:relative;z-index:2;
+  padding:6px 22px 10px;
+  display:flex;flex-direction:column;align-items:center;text-align:center;
+}
+.cel-stars{
+  font-size:28px;letter-spacing:8px;margin-bottom:2px;
+  animation:starPulse 1s ease infinite alternate;
+}
+.cel-trophy{
+  font-size:72px;line-height:1;margin-bottom:10px;
+  animation:trophyBounce .6s cubic-bezier(.36,.07,.19,.97) both;
+  filter:drop-shadow(0 4px 18px rgba(251,191,36,.5));
+}
+.cel-title{
+  font-family:'Fredoka One',cursive;font-size:26px;color:#fff;
+  margin-bottom:7px;text-shadow:0 2px 12px rgba(0,0,0,.2);
+  animation:fadeUp .4s .15s ease both;
+}
+.cel-sub{
+  font-size:13px;color:rgba(255,255,255,.75);margin-bottom:18px;
+  animation:fadeUp .4s .25s ease both;
+}
+.perm-cel-list{
+  width:100%;display:flex;flex-direction:column;gap:10px;margin-bottom:22px;
+  animation:fadeUp .4s .35s ease both;
+}
+.perm-cel-item{
+  background:rgba(255,255,255,.14);backdrop-filter:blur(8px);
+  border:1.5px solid rgba(255,255,255,.22);border-radius:16px;
+  padding:14px 16px;display:flex;align-items:center;gap:13px;text-align:left;
+}
+.perm-cel-icon-wrap{
+  font-size:30px;flex-shrink:0;
+  width:52px;height:52px;background:rgba(255,255,255,.18);
+  border-radius:14px;display:flex;align-items:center;justify-content:center;
+}
+.perm-cel-info{flex:1}
+.perm-cel-label{font-size:15px;font-weight:800;color:#fff;margin-bottom:4px}
+.perm-cel-desc{font-size:12px;color:rgba(255,255,255,.72);line-height:1.45}
+.cel-btn{
+  width:100%;padding:16px;
+  background:#fff;color:var(--v);
+  border:none;border-radius:16px;
+  font-size:15px;font-weight:800;
+  font-family:'Plus Jakarta Sans',sans-serif;
+  transition:transform .15s,box-shadow .15s;
+  box-shadow:0 4px 20px rgba(0,0,0,.2);
+  animation:fadeUp .4s .45s ease both;
+}
+.cel-btn:active{transform:scale(.97)}
+
+@keyframes trophyBounce{
+  0%{transform:scale(0) rotate(-15deg);opacity:0}
+  60%{transform:scale(1.2) rotate(5deg)}
+  80%{transform:scale(.95) rotate(-2deg)}
+  100%{transform:scale(1) rotate(0);opacity:1}
+}
+@keyframes starPulse{
+  from{transform:scale(.9);opacity:.7}
+  to{transform:scale(1.1);opacity:1}
+}
 @keyframes carBounce{from{transform:translateY(0) rotate(-3deg)}to{transform:translateY(-10px) rotate(3deg)}}
 @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 @keyframes loadBar{from{width:0}to{width:100%}}
